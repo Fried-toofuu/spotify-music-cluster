@@ -1,0 +1,26 @@
+{
+  "reflow": [
+    [
+      320,
+      640
+    ],
+    [
+      480,
+      640
+    ],
+    [
+      1024,
+      768
+    ],
+    [
+      812,
+      375
+    ]
+  ],
+  "offline": true,
+  "touch_scroll": true,
+  "125-percent-root-text": true,
+  "touch_3d_rotation": true,
+  "rotation_did_not_scroll_page": true,
+  "offline_port_released": true
+}

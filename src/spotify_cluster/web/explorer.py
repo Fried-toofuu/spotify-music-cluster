@@ -16,19 +16,20 @@ TEMPLATE = """
     </div>
     <div class="obs-toolbar" role="toolbar" aria-label="Cluster space controls">
       <div class="obs-seg" role="group" aria-label="Projection view">
-        <button type="button" data-view="2d" aria-pressed="true">2D</button>
-        <button type="button" data-view="3d" aria-pressed="false">3D</button>
+        <button type="button" data-view="2d" aria-pressed="true">PCA 2D</button>
+        <button type="button" data-view="3d" aria-pressed="false">PCA 3D</button>
         <button type="button" data-view="density" aria-pressed="false">Density</button>
         <button type="button" data-view="constellation" aria-pressed="false">Constellation</button>
       </div>
       <div class="obs-chips" role="group" aria-label="Cluster filter">
         <button type="button" data-cluster="all" aria-pressed="true">Both</button>
-        <button type="button" data-cluster="0" aria-pressed="true"><span class="obs-swatch c0"></span>Cluster 0</button>
-        <button type="button" data-cluster="1" aria-pressed="true"><span class="obs-swatch c1"></span>Cluster 1</button>
+        <button type="button" data-cluster="0" aria-pressed="false"><span class="obs-swatch c0"></span>Cluster 0</button>
+        <button type="button" data-cluster="1" aria-pressed="false"><span class="obs-swatch c1"></span>Cluster 1</button>
       </div>
       <button type="button" class="obs-reset" data-action="reset">Reset view</button>
     </div>
   </div>
+  <button type="button" class="obs-touch-toggle obs-reset" data-action="touch" hidden>Enable rotation</button>
   <div class="obs-plot" data-role="plot" role="img" aria-label="Interactive PCA projection of sampled training tracks"></div>
   <div class="obs-constellation" data-role="constellation" hidden>
     <div class="obs-constellation-tip" data-role="tip" hidden></div>
@@ -36,36 +37,47 @@ TEMPLATE = """
   <div class="obs-explorer-foot">
     <p class="obs-caption" data-role="caption">Refresh live data to load the verified projection.</p>
     <p class="obs-status" data-role="status" role="status" aria-live="polite"></p>
+    <form class="obs-sample-picker" data-role="sample-picker" hidden>
+      <label>Sample number <input type="number" min="0" step="1" required aria-label="Sample number (zero-based)"></label>
+      <button type="submit" class="obs-reset">Inspect sample</button>
+    </form>
   </div>
 </div>
 """
 
 CSS = """
 .obs-explorer { background: var(--obs-surface-1, #0e1719);
+  container-type: inline-size;
   border: 1px solid var(--obs-line, #22383a); border-radius: 14px; overflow: hidden;
   color: var(--obs-ink, #eef7f4); }
 .obs-explorer-head { display: flex; align-items: flex-start; justify-content: space-between;
   gap: 14px; flex-wrap: wrap; padding: 16px 18px 14px;
   border-bottom: 1px solid var(--obs-line, #22383a); }
 .obs-explorer-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.obs-explorer-kicker { font-family: var(--obs-mono, monospace); font-size: .66rem;
+.obs-explorer-kicker { font-family: var(--obs-mono, monospace); font-size: .8rem;
   letter-spacing: .16em; text-transform: uppercase; color: var(--obs-muted, #8ba39e); }
 .obs-explorer-heading { font-family: var(--obs-display, Georgia, serif); font-size: 1.28rem;
   font-weight: 500; letter-spacing: -.01em; color: var(--obs-ink, #eef7f4); }
-.obs-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.obs-seg, .obs-chips { display: flex; align-items: center; gap: 2px; padding: 3px;
+.obs-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  align-items: start; gap: 10px; width: 100%; min-width: 0; }
+.obs-toolbar > .obs-reset { grid-column: 1 / -1; justify-self: start; }
+.obs-explorer:not(.is-compact) .obs-seg {
+  grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.obs-seg, .obs-chips { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  align-items: stretch; gap: 4px; padding: 4px; max-width: 100%; min-width: 0; width: 100%;
   background: var(--obs-surface-2, #132326); border: 1px solid var(--obs-line, #22383a);
-  border-radius: 999px; }
+  border-radius: 12px; }
 .obs-seg button, .obs-chips button { appearance: none; border: 0; background: transparent;
   white-space: nowrap;
   color: var(--obs-muted, #8ba39e); font-family: var(--obs-mono, monospace);
-  font-size: .68rem; letter-spacing: .04em; border-radius: 999px; padding: 8px 11px;
-  min-height: 34px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  font-size: .82rem; letter-spacing: .04em; border-radius: 8px; padding: 8px 11px;
+  margin: 0; box-sizing: border-box; line-height: 1.4; justify-content: center;
+  min-height: 44px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
   transition: background-color 160ms ease, color 160ms ease; }
 .obs-seg button:hover, .obs-chips button:hover { color: var(--obs-ink, #eef7f4); }
 .obs-seg button[aria-pressed="true"], .obs-chips button[aria-pressed="true"] {
   background: var(--obs-surface-3, #193033); color: var(--obs-ink, #eef7f4); }
-.obs-seg button:disabled, .obs-chips button:disabled { opacity: .38; cursor: not-allowed; }
+.obs-seg button:disabled, .obs-chips button:disabled { color: var(--obs-muted, #8ba39e); background: transparent; text-decoration: line-through; cursor: not-allowed; }
 .obs-chips button:focus-visible, .obs-seg button:focus-visible, .obs-reset:focus-visible {
   outline: 2px solid var(--obs-teal, #5eead4); outline-offset: 2px; }
 .obs-swatch { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
@@ -73,10 +85,20 @@ CSS = """
 .obs-swatch.c1 { background: var(--obs-violet, #b7a4ff); }
 .obs-reset { appearance: none; border: 1px solid var(--obs-line-strong, #35565a);
   background: transparent; color: var(--obs-ink-2, #c4d6d2);
-  font-family: var(--obs-mono, monospace); font-size: .68rem; border-radius: 8px;
-  padding: 8px 11px; min-height: 34px; cursor: pointer; }
+  font-family: var(--obs-mono, monospace); font-size: .82rem; border-radius: 8px;
+  padding: 8px 11px; min-height: 44px; cursor: pointer; }
 .obs-reset:hover { background: var(--obs-surface-2, #132326); color: var(--obs-ink, #eef7f4); }
 .obs-reset[hidden] { display: none; }
+.obs-sample-picker { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; width: 100%; }
+.obs-sample-picker[hidden] { display: none; }
+.obs-sample-picker label { font-size: .85rem; color: var(--obs-ink-2, #c4d6d2); }
+.obs-sample-picker input { display: block; width: 120px; min-height: 44px;
+  background: var(--obs-surface-2, #132326); color: var(--obs-ink, #eef7f4);
+  border: 1px solid var(--obs-line-strong, #35565a); border-radius: 8px; padding: 8px; }
+.obs-sample-picker input:focus-visible { outline: 2px solid var(--obs-teal, #5eead4); }
+.obs-touch-toggle { margin: 8px 14px; }
+.obs-explorer.is-touch-locked .obs-plot,
+.obs-explorer.is-touch-locked .obs-constellation { pointer-events: none; touch-action: pan-y; }
 .obs-plot { width: 100%; height: clamp(340px, 54vh, 560px); min-height: 280px; }
 .obs-constellation { position: relative; width: 100%; height: clamp(340px, 54vh, 560px);
   min-height: 280px; }
@@ -86,7 +108,7 @@ CSS = """
 .obs-constellation-tip { position: absolute; z-index: 2; pointer-events: none;
   max-width: 220px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--obs-line-strong, #35565a);
   background: var(--obs-surface-3, #193033); color: var(--obs-ink, #eef7f4);
-  font-family: var(--obs-mono, monospace); font-size: .66rem; line-height: 1.5;
+  font-family: var(--obs-mono, monospace); font-size: .8rem; line-height: 1.5;
   box-shadow: 0 6px 18px rgba(0,0,0,.35); }
 .obs-explorer.is-constellation .obs-plot { display: none; }
 .obs-explorer.is-compact [data-view="constellation"] { display: none; }
@@ -94,22 +116,45 @@ CSS = """
 .obs-explorer.is-compact .obs-constellation { height: clamp(280px, 40vh, 400px); }
 .obs-explorer.is-compact .obs-explorer-head { padding: 13px 15px 12px; }
 .obs-explorer.is-compact .obs-explorer-heading { font-size: 1.1rem; }
+.obs-explorer.is-compact .modebar-container { display: none; }
+.obs-explorer:not(.is-compact) .obs-plot { margin-top: 32px; }
+.obs-explorer:not(.is-compact) .obs-plot .modebar-container { top: -32px !important; }
 .obs-explorer-foot { display: flex; align-items: flex-start; justify-content: space-between;
   gap: 10px 18px; flex-wrap: wrap; padding: 11px 18px 13px;
   border-top: 1px solid var(--obs-line, #22383a); }
-.obs-caption, .obs-status { margin: 0; font-size: .72rem; line-height: 1.5; }
+@media (pointer: coarse) {
+  .obs-plot, .obs-plot .main-svg, .obs-plot .draglayer, .obs-plot .nsewdrag {
+    touch-action: pan-y !important;
+  }
+  .obs-explorer.is-touch-enabled .obs-plot,
+  .obs-explorer.is-touch-enabled .obs-plot .main-svg,
+  .obs-explorer.is-touch-enabled .obs-plot .draglayer,
+  .obs-explorer.is-touch-enabled .obs-plot .nsewdrag {
+    touch-action: none !important;
+  }
+}
+.obs-caption, .obs-status { margin: 0; font-size: .85rem; line-height: 1.5; }
 .obs-caption { color: var(--obs-muted, #8ba39e); max-width: 76ch; }
 .obs-status { color: var(--obs-ink-2, #c4d6d2); font-family: var(--obs-mono, monospace);
-  font-size: .68rem; }
+  font-size: .82rem; }
 .obs-empty { display: flex; align-items: center; justify-content: center; height: 100%;
   min-height: 240px; padding: 24px; text-align: center; color: var(--obs-muted, #8ba39e);
   font-size: .86rem; }
+@container (max-width: 600px) {
+  .obs-toolbar { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 640px) {
   .obs-explorer-head { padding: 13px 14px; }
   .obs-toolbar { width: 100%; }
-  .obs-seg, .obs-chips { flex: 1 1 auto; justify-content: center; }
-  .obs-chips button, .obs-seg button { padding: 7px 8px; font-size: .62rem; }
-  .obs-reset { width: 100%; }
+  .obs-toolbar { grid-template-columns: minmax(0, 1fr); }
+  .obs-seg, .obs-chips { flex: 1 1 auto; }
+  .obs-chips button, .obs-seg button { padding: 7px 8px; font-size: .78rem; }
+  .obs-reset { width: auto; }
+  .obs-toolbar { gap: 8px; }
+  .obs-seg { width: 100%; grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .obs-explorer.is-compact .obs-seg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .obs-chips { border-radius: 12px; }
+  .obs-explorer.is-compact .obs-chips { display: none; }
   .obs-plot { height: 340px; }
   .obs-explorer-foot { padding: 10px 14px 12px; }
 }
@@ -129,6 +174,11 @@ JS = r"""
   const viewButtons = Array.from(root.querySelectorAll('[data-view]'));
   const clusterButtons = Array.from(root.querySelectorAll('[data-cluster]'));
   const resetButton = root.querySelector('[data-action="reset"]');
+  const touchButton = root.querySelector('[data-action="touch"]');
+  const samplePicker = root.querySelector('[data-role="sample-picker"]');
+  const sampleInput = samplePicker.querySelector('input');
+  const coarsePointer = matchMedia('(pointer: coarse)').matches;
+  let touchEnabled = false;
   const constellationHost = root.querySelector('[data-role="constellation"]');
   const tip = root.querySelector('[data-role="tip"]');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -152,6 +202,11 @@ JS = r"""
       return false;
     }
   })();
+  let sceneGeneration = 0;
+  let resetRevision = 0;
+  let disposed = false;
+  let renderTimer = null;
+  let camera3d = null;
   const state = {view: '2d', clusters: new Set([0, 1]), selected: null, payload: null};
   let rendered = false;
   let attempts = 0;
@@ -196,6 +251,14 @@ JS = r"""
       + '). Plotted proportions are not population proportions; PCA is visualization only.';
   }
   function updateControls() {
+    samplePicker.hidden = compact || !available() || state.view === 'density';
+    if (available()) sampleInput.max = state.payload.points.x.length - 1;
+    const touchScene = coarsePointer && ['3d', 'constellation'].includes(state.view);
+    touchButton.hidden = !touchScene;
+    touchButton.textContent = touchEnabled ? 'Resume page scrolling' : 'Enable rotation';
+    touchButton.setAttribute('aria-pressed', String(touchEnabled));
+    root.classList.toggle('is-touch-locked', touchScene && !touchEnabled);
+    root.classList.toggle('is-touch-enabled', touchScene && touchEnabled);
     viewButtons.forEach((button) => {
       const view = button.dataset.view;
       button.disabled = view === 'constellation'
@@ -209,12 +272,28 @@ JS = r"""
       const key = button.dataset.cluster;
       const pressed = key === 'all'
         ? state.clusters.size === 2
-        : state.clusters.has(Number(key));
+        : state.clusters.size === 1 && state.clusters.has(Number(key));
       setPressed(button, pressed);
       button.disabled = state.view === 'density' || !available();
     });
     if (resetButton && !compact) resetButton.hidden = !available();
     if (caption) caption.textContent = captionText();
+  }
+  const inspector = compact ? null : document.getElementById('explorer-detail');
+  function syncInspector() {
+    if (!inspector) return;
+    const card = inspector.querySelector('.obs-selected-track, .obs-selection-error');
+    if (card) card.hidden = state.selected === null || Number(card.dataset.sample) !== state.selected;
+    const guide = inspector.querySelector('.obs-guide');
+    if (guide) guide.hidden = state.selected !== null;
+    inspector.setAttribute('aria-busy', state.selected !== null && (!card || card.hidden) ? 'true' : 'false');
+  }
+  const inspectorObserver = inspector ? new MutationObserver(syncInspector) : null;
+  if (inspectorObserver) inspectorObserver.observe(inspector, {childList: true, subtree: true});
+  function notifySelection(index) {
+    state.selected = index;
+    syncInspector();
+    if (!compact) trigger('select', {index, view: state.view});
   }
   function indicesFor(cluster) {
     const labels = state.payload.points.cluster;
@@ -265,7 +344,8 @@ JS = r"""
   function selectionTrace() {
     const points = state.payload.points;
     const index = state.selected;
-    const has = index !== null && points && points.x[index] !== undefined;
+    const has = index !== null && points && points.x[index] !== undefined
+      && state.clusters.has(points.cluster[index]);
     if (state.view === '3d') {
       return {
         type: 'scatter3d', mode: 'markers', name: 'Selected sample', showlegend: false,
@@ -288,14 +368,23 @@ JS = r"""
   function baseLayout() {
     return {
       autosize: true, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-      font: {family: 'Inter, Segoe UI, sans-serif', color: MUTED, size: 11},
-      margin: {l: 46, r: 18, t: 18, b: 44},
+      uirevision: state.view + ':' + resetRevision,
+      font: {family: 'Inter, Segoe UI, sans-serif', color: MUTED, size: 12},
+      margin: {l: 46, r: 18, t: plot.clientWidth < 500 ? 76 : 36, b: 44},
       hoverlabel: {bgcolor: SURFACE, bordercolor: LINE, font: {color: INK}},
       showlegend: true,
-      legend: {orientation: 'h', y: 1.06, x: 0, font: {color: MUTED, size: 11},
+      legend: {orientation: 'h', y: 1.04, yanchor: 'bottom', x: 0, font: {color: MUTED, size: 12},
         bgcolor: 'rgba(0,0,0,0)'},
       transition: {duration: 0}
     };
+  }
+  function rememberCamera() {
+    // Plotly wheel zoom updates the rendered camera before its layout/event state.
+    // Snapshot that camera before changing traces; uirevision retains other UI state.
+    const scene = plot._fullLayout && plot._fullLayout.scene && plot._fullLayout.scene._scene;
+    if (state.view === '3d' && scene && typeof scene.getCamera === 'function') {
+      camera3d = scene.getCamera();
+    }
   }
   function layout3d() {
     const base = baseLayout();
@@ -304,7 +393,7 @@ JS = r"""
       xaxis: {title: {text: pcaLabel(0)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED},
       yaxis: {title: {text: pcaLabel(1)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED},
       zaxis: {title: {text: pcaLabel(2)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED},
-      camera: {eye: {x: 1.15, y: 1.15, z: 0.95}},
+      camera: camera3d || {eye: {x: 1.15, y: 1.15, z: 0.95}},
       aspectmode: 'data',
       dragmode: 'orbit'
     };
@@ -314,10 +403,10 @@ JS = r"""
     const base = baseLayout();
     base.xaxis = {title: {text: pcaLabel(0)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED};
     base.yaxis = {title: {text: pcaLabel(1)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED};
-    base.dragmode = 'pan';
+    base.dragmode = coarsePointer ? false : 'pan';
     return base;
   }
-  const CONFIG = {responsive: true, displaylogo: false, scrollZoom: true,
+  const CONFIG = {responsive: true, displaylogo: false, scrollZoom: !coarsePointer,
     doubleClick: 'reset', modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d']};
 
   function showEmpty(message) {
@@ -354,8 +443,8 @@ JS = r"""
       zmin: Math.log10(Math.max(1, occupancy.min_cell_count)),
       zmax: Math.log10(maxCount),
       showscale: true,
-      colorbar: {title: {text: 'Tracks (log)', font: {color: MUTED, size: 9}},
-        thickness: 9, len: 0.55, tickfont: {color: MUTED, size: 8},
+      colorbar: {title: {text: 'Tracks (log)', font: {color: MUTED, size: 12}},
+        thickness: 9, len: 0.55, tickfont: {color: MUTED, size: 12},
         outlinewidth: 0},
       colorscale: [[0, '#0b1416'], [0.25, '#123033'], [0.6, '#1f6f6b'], [1, '#5eead4']],
       hovertemplate: 'Cell track count: %{customdata[0]}<br>Cluster 1 share: '
@@ -375,6 +464,7 @@ JS = r"""
       plot.removeAllListeners('plotly_click');
     }
     plot.on('plotly_click', (event) => {
+      if (state.view === 'density' || !available()) return;
       if (compact) {
         if (status) status.textContent = 'Open the Cluster Explorer tab to inspect samples.';
         return;
@@ -383,13 +473,14 @@ JS = r"""
       if (!point || !point.customdata) return;
       const index = point.customdata[0];
       const row = state.payload.points.raw_features[index];
+      rememberCamera();
       state.selected = index;
       if (status) {
         status.textContent = 'Selected sample #' + index + ' · Cluster '
           + state.payload.points.cluster[index] + ' · instrumentalness '
           + Number(value(row, 'instrumentalness')).toFixed(3);
       }
-      trigger('select', {index: index});
+      notifySelection(index);
       render();
     });
   }
@@ -397,6 +488,7 @@ JS = r"""
     if (tip) tip.hidden = true;
   }
   function disposeConstellation() {
+    sceneGeneration += 1;
     if (constellation) {
       try {
         constellation.dispose();
@@ -454,8 +546,10 @@ JS = r"""
       return;
     }
     if (constellationLoading) return constellationLoading;
+    const generation = sceneGeneration;
     constellationLoading = import(constellationUrl)
       .then((module) => {
+        if (disposed || generation !== sceneGeneration || state.view !== 'constellation') return null;
         constellation = module.createConstellation({
           container: constellationHost,
           points: state.payload.points,
@@ -467,7 +561,7 @@ JS = r"""
             if (status) status.textContent = 'Selected sample #' + index + ' · Cluster '
               + state.payload.points.cluster[index] + ' · instrumentalness '
               + Number(value(row, 'instrumentalness')).toFixed(3);
-            trigger('select', {index: index});
+            notifySelection(index);
           },
           onHover: (index, x, y) => showTip(index, x, y),
           onReady: () => {
@@ -478,11 +572,13 @@ JS = r"""
           },
         });
         constellation.setVisibleClusters(Array.from(state.clusters));
+        if (state.selected !== null) constellation.select(state.selected);
         root.__acousticConstellation = constellation;
         rendered = true;
         return constellation;
       })
       .catch(() => {
+        if (disposed || generation !== sceneGeneration) return null;
         constellationLoading = null;
         disposeConstellation();
         state.view = 'density';
@@ -493,6 +589,7 @@ JS = r"""
     return constellationLoading;
   }
   function render() {
+    if (disposed) return;
     updateControls();
     if (state.view === '3d' && !WEBGL) {
       state.view = '2d';
@@ -511,7 +608,7 @@ JS = r"""
     if (!window.Plotly) {
       attempts += 1;
       if (attempts < 120) {
-        window.setTimeout(render, 50);
+        renderTimer = window.setTimeout(render, 50);
       } else {
         showEmpty('The visualization library could not be loaded.');
       }
@@ -536,24 +633,48 @@ JS = r"""
   viewButtons.forEach((button) => {
     button.addEventListener('click', () => {
       if (button.disabled) return;
+      if (state.view === button.dataset.view) return;
+      touchEnabled = false;
       state.view = button.dataset.view;
-      state.selected = null;
+      camera3d = null;
+      notifySelection(null);
       if (status) status.textContent = '';
       render();
     });
   });
+  touchButton.addEventListener('click', () => {
+    touchEnabled = !touchEnabled;
+    updateControls();
+  });
+  samplePicker.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const index = Number(sampleInput.value);
+    if (!available() || !Number.isInteger(index) || index < 0 || index >= state.payload.points.x.length) return;
+    if (!state.clusters.has(state.payload.points.cluster[index])) {
+      status.textContent = 'That sample is hidden by the cluster filter. Choose Both to inspect it.';
+      return;
+    }
+    rememberCamera();
+    notifySelection(index);
+    status.textContent = 'Selected sample #' + index + ' · Cluster ' + state.payload.points.cluster[index];
+    if (constellation) constellation.select(index);
+    else render();
+  });
   clusterButtons.forEach((button) => {
     button.addEventListener('click', () => {
       if (button.disabled) return;
+      rememberCamera();
       const key = button.dataset.cluster;
       if (key === 'all') {
         state.clusters = new Set([0, 1]);
       } else {
-        const cluster = Number(key);
-        if (state.clusters.has(cluster)) state.clusters.delete(cluster);
-        else state.clusters.add(cluster);
-        if (!state.clusters.size) state.clusters.add(cluster);
+        state.clusters = new Set([Number(key)]);
       }
+      if (state.selected !== null && !state.clusters.has(state.payload.points.cluster[state.selected])) {
+        notifySelection(null);
+        if (constellation) constellation.clearSelection();
+      }
+      hideTip();
       if (state.view === 'constellation' && constellation) {
         constellation.setVisibleClusters(Array.from(state.clusters));
         updateControls();
@@ -565,10 +686,13 @@ JS = r"""
   });
   if (resetButton) {
     resetButton.addEventListener('click', () => {
-      state.selected = null;
+      notifySelection(null);
+      resetRevision += 1;
+      camera3d = null;
       if (status) status.textContent = '';
       hideTip();
       if (state.view === 'constellation' && constellation) {
+        constellation.clearSelection();
         constellation.resetCamera();
         return;
       }
@@ -576,13 +700,25 @@ JS = r"""
         if (state.view === '3d') {
           Plotly.relayout(plot, {'scene.camera': {eye: {x: 1.45, y: 1.35, z: 1.25}}});
         } else if (state.view === '2d') {
-          Plotly.relayout(plot, {xaxis: {autorange: true}, yaxis: {autorange: true}});
+          Plotly.relayout(plot, {'xaxis.autorange': true, 'yaxis.autorange': true});
         }
       }
       render();
     });
   }
+  const refreshButton = document.getElementById('refresh-live');
+  function clearForRefresh() {
+    rememberCamera();
+    state.selected = null;
+    syncInspector();
+    if (constellation) constellation.clearSelection();
+    if (status) status.textContent = '';
+    hideTip();
+    render();
+  }
+  if (refreshButton) refreshButton.addEventListener('click', clearForRefresh);
   function setPayload(value) {
+    if (state.payload && value && JSON.stringify(state.payload) === JSON.stringify(value)) return;
     disposeConstellation();
     state.payload = value && typeof value === 'object' ? value : null;
     state.selected = null;
@@ -606,6 +742,18 @@ JS = r"""
     }
   });
   observer.observe(plot);
+  const lifecycle = new MutationObserver(() => {
+    if (root.isConnected) return;
+    disposed = true;
+    clearTimeout(renderTimer);
+    observer.disconnect();
+    lifecycle.disconnect();
+    if (inspectorObserver) inspectorObserver.disconnect();
+    if (refreshButton) refreshButton.removeEventListener('click', clearForRefresh);
+    disposeConstellation();
+    if (window.Plotly) Plotly.purge(plot);
+  });
+  lifecycle.observe(document.body, {childList: true, subtree: true});
 })();
 """
 

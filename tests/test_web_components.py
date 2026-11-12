@@ -75,7 +75,7 @@ def test_refresh_returns_every_panel(web_client, web_responses):
         distance_table,
     ) = result[8:]
     assert state["model"]["model_id"] == "software-fixture-only"
-    assert "Live verified aggregates" in brandbar
+    assert "Acoustic Observatory" in brandbar and "obs-live" not in brandbar
     assert "API ready" in status and "loaded" in status
     assert overview["view"] == "points"
     assert (
@@ -120,7 +120,46 @@ def test_load_explorer_and_point_selection(web_client, web_responses):
     assert "not screen distance" in selected
     failed = handlers.explorer_select(state, event(1))
     assert "Could not complete" in failed
-    assert handlers.explorer_select(None, event(0)).startswith('<div class="obs-card">')
+    assert 'class="obs-card obs-selection-error" data-sample="1"' in failed
+    assert "Explorer Guide" in handlers.explorer_select(None, event(0))
+
+
+def test_clear_selection_returns_mode_appropriate_guide_without_neighbor_request(
+    web_client, monkeypatch
+):
+    import gradio as gr
+
+    handlers = Handlers(web_client)
+    state = handlers.refresh()[0]
+
+    def forbidden(*args):
+        raise AssertionError("Clearing selection must not request neighbors")
+
+    monkeypatch.setattr(web_client, "visualization_neighbors", forbidden)
+    for mode, expected in [
+        ("density", "Read population density"),
+        ("3d", "Pick a sample"),
+        ("2d", "Pick a sample"),
+    ]:
+        cleared = handlers.explorer_select(
+            state, gr.EventData(None, {"index": None, "view": mode})
+        )
+        assert expected in cleared
+        assert "obs-selected-track" not in cleared
+
+
+def test_research_disclosure_preserves_identity_and_evidence(web_responses):
+    markup = research_narrative_html(
+        web_responses["comparison"], web_responses["clusters"]
+    )
+    assert markup.index("Research Findings") < markup.index("Model Comparison")
+    assert markup.index("Model Comparison") < markup.index(
+        "Methodology and Reproducibility"
+    )
+    assert 'class="obs-research-layer">' in markup
+    assert "NOT VERIFIED" in markup and "Holdout" in markup
+    assert "Adjusted Rand Index" in markup and "not quality" in markup
+    assert "Supporting figures and exact archived evidence" in markup
 
 
 def test_explore_changes_with_feature_and_statistic(web_client, web_responses):

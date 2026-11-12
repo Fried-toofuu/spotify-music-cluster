@@ -51,10 +51,13 @@ entries before Gradio imports because httpx 0.28 rejects them.
 
 ### Overview
 
-A research-oriented hero, the interactive **cluster space preview** (every
+A compact two-column introduction beside the interactive **cluster space preview** (every
 fourth verified sample point, with 2D/3D/density controls), a compact model fact
-sheet, the dominant instrumentalness finding, population balance, entry cards
-and model identity. The preview is explicitly labeled and never claims to be
+sheet, the dominant instrumentalness finding, population balance and model identity
+below. One primary Explore Acoustic Space action enters the Explorer; Live
+Prediction is secondary. Scientific Context keeps caveats available on demand.
+The header consolidates readiness and optional-data warnings into one status
+with a compact refresh utility; initial loading remains automatic. The preview is explicitly labeled and never claims to be
 the full sample. In aggregate fallback mode no individual points exist; the
 preview renders the density grid with a disclosure. The approved public points
 mode enables the same 2D/3D/density preview as the local points artifact.
@@ -65,9 +68,12 @@ mode enables the same 2D/3D/density preview as the local points artifact.
   zoom, pan, rotation, hover and Plotly's modebar. Colors are stable teal/violet
   for Clusters 0/1; 2D markers also use circle/diamond symbols; legends include
   sample counts.
-- **Cluster filtering:** Both / Cluster 0 / Cluster 1; the view updates without a
-  page reload.
-- **Selection:** click a point to highlight it and load its permitted acoustic
+- **Cluster filtering:** Both / Cluster 0 / Cluster 1 is a mutually exclusive choice of
+  visible sets. Both compares both clusters; each numbered choice isolates one.
+  Filtering preserves Plotly camera/zoom and an eligible selection. Hiding the
+  selected cluster clears both the highlight and inspector.
+- **Selection:** click or tap a point, or enter a zero-based sample number and
+  choose Inspect sample by keyboard, to highlight it and load its permitted acoustic
   descriptors plus up to eight nearest **sampled** tracks. Neighbor distance is
   Euclidean in fitted RobustScaler F9 space, not screen distance.
 - **Density:** a log-color-scaled 40×40 aggregate grid over the full training
@@ -77,7 +83,14 @@ mode enables the same 2D/3D/density preview as the local points artifact.
   coordinates. Drag to orbit, scroll to zoom, hover for details, click to inspect
   and filter clusters. It loads lazily; if WebGL or the bundle is unavailable the
   view falls back to aggregate density and the Plotly views stay available.
-- **Reset view** resets the camera/zoom, not the scientific filters.
+- **Reset view** restores camera/zoom and clears selection while preserving filters.
+  Changing projection clears selection and may reset the camera. A guide explains
+  the active mode when no point is selected; density shows population guidance.
+  Inspector responses are gated by the selected sample index, and rapid events
+  retain the latest selection/clear request. Tab changes retain the current map.
+- **Touch 3D:** Enable rotation explicitly opts into canvas gestures. Resume page
+  scrolling returns vertical scrolling; each projection change starts unlocked
+  for page scrolling. Hover is supplementary, not required for inspection.
 - The exact nine-feature comparison table, raw-unit mean/median/std/Q1/Q3/IQR
   table and disclosure text remain available for verification and accessibility.
 
@@ -97,31 +110,30 @@ centroid distances in exact numeric form, normalized distance meters, the curren
 cluster profile and the two most distinguishing raw-unit means. The smaller
 distance determines the assignment; distances are **not probabilities** and are
 never converted to confidence. Model identity and the historical-equivalence
-limit live in a disclosure. Failed predictions clear stale output; the result
-component scrolls into view after a successful response (motion respects the
+limit live in a disclosure. Failed predictions clear stale output. Distance Breakdown holds the secondary
+chart, exact numerical table and units. The result component scrolls into view
+once after the Gradio response completes (motion respects the
 user preference). The example is explicitly synthetic and is not research
 evidence.
 
 ### Research & Methodology
 
-The page explains the unsupervised question, authorized data preparation, F5/F9
-representations, RobustScaler geometry, the dominant instrumentalness finding,
-the historical-vs-deployment identity split, archived historical evidence,
-controlled F5/F9 and K-Means/GMM comparisons, interactive figures and limits.
-Each number is labeled as archived, deployment training-population or a new
-development comparison. The historical Holdout is shown as closed and is never
-recomputed; no cross-geometry leaderboard is created. See
-[RESEARCH.md](RESEARCH.md).
+Research Findings leads with the unsupervised question and feature dominance.
+Model Comparison groups the controlled F5/F9 and K-Means/GMM results; Methodology
+and Reproducibility discloses data preparation, representation, historical identity
+and limits. Supporting figures and exact archived evidence exposes the Plotly
+figures and one exact historical table. Each number keeps its original provenance;
+ARI is partition agreement, not accuracy. No cross-geometry leaderboard or fresh
+Holdout score is created. See [RESEARCH.md](RESEARCH.md).
 
 ## Accessibility, responsiveness and states
 
 - Verified at 1440×900, 768×1024 and 375×812. Overview/Explorer/Predict rows
-  stack at ≤900px; the tab bar scrolls horizontally; no page-level horizontal
+  stack at ≤900px; the four tabs form a visible two-column mobile grid; no page-level horizontal
   overflow. Wide tables scroll inside bounded containers.
 - Keyboard: native controls, custom Explorer buttons with `aria-pressed` and
-  `role="status"`, visible 2px teal focus outlines. The Plotly canvas is
-  pointer-based; exact tables and the density view are the keyboard-accessible
-  data equivalents. Plotly modebar buttons are focusable.
+  `role="status"`, visible 2px teal focus outlines. The sample-number form provides keyboard access to point
+  descriptors and neighbors; exact tables expose population aggregates. Plotly modebar buttons are focusable.
 - Contrast: all text token pairs tested at ≥4.5:1 (primary 17.9, secondary 12.9,
   muted 7.3 on the page). The cluster identity never depends only on color.
 - Reduced motion: CSS transitions/animations are removed; Plotly transitions are
@@ -130,10 +142,9 @@ recomputed; no cross-geometry leaderboard is created. See
   only, empty prediction, invalid input, prediction error with stale clear, no
   selection, WebGL failure with density fallback and reduced-motion mode.
 
-Measured on this checkout: first contentful paint ~100 ms, Overview map ready
-~2.0 s, Explorer plot ~1.2 s after tab selection, 3D switch ~1.3 s, JS heap
-~39 MB after load / ~115 MB after 18 view switches. These are local
-measurements, not universal budgets.
+Measurements and screenshot comparisons are stateful evidence in the
+[refinement delivery report](../plans/20261112-ui-refinement/reports/delivery.md).
+Local timings are not Render cold-start or field Core Web Vitals guarantees.
 
 ## Verification
 
@@ -165,6 +176,16 @@ evidence. The points artifact is served only from the private deployment
 dataset. Screenshots in `docs/screenshots/` were captured from the real
 aggregate-mode application; they are not mockups.
 
+The refinement's points-mode checks reuse a trusted local backend and a separately
+owned verification frontend on port 7872. Run
+`plans/20261112-ui-refinement/verify-browser.py` against that frontend to exercise
+real picking, neighbors, camera/filter continuity, touch opt-in, prediction errors,
+keyboard controls, reduced motion and WebGL/bundle fallbacks. Its points screenshots
+stay ignored; screenshots distributed in docs must use aggregate mode. Record
+console/network failures, manually inspect all four tabs at 1440x900, 768x1024 and
+375x812, and check shorter/intermediate layouts. Do not infer a pass from a Python
+figure update alone.
+
 ## Privacy and local file serving
 
 The entry point binds loopback, disables public sharing, browser auto-launch,
@@ -180,5 +201,5 @@ not a data-access path. The raw CSV, notebook,
 model bundle, verification sample and private points artifact are not served.
 
 Public hosting requires TLS, access/rate controls, provider permissions and a
-separate publication decision; see [DEPLOYMENT.md](DEPLOYMENT.md). Actual public
-publication is **BLOCKED** for this implementation.
+separate publication decision; see [DEPLOYMENT.md](DEPLOYMENT.md). The existing public service remains an operator-owned deployment; UI refinement
+does not itself authorize a push or redeployment.

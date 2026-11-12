@@ -163,9 +163,9 @@ def browser_checks(base: str, screenshots: Path) -> dict:
                     else None,
                 )
                 page.goto(base, wait_until="load", timeout=60000)
-                expect(
-                    page.get_by_text("Live verified aggregates", exact=False).first
-                ).to_be_visible(timeout=45000)
+                expect(page.get_by_text("API ready", exact=True).first).to_be_visible(
+                    timeout=45000
+                )
                 expect(page.locator(".obs-hero h1")).to_be_visible()
                 overflow = page.evaluate(
                     "() => ({doc: document.documentElement.scrollWidth,"
@@ -192,7 +192,7 @@ def browser_checks(base: str, screenshots: Path) -> dict:
                     "Aggregate density", timeout=20000
                 )
                 expect(
-                    page.get_by_role("button", name="2D", exact=True)
+                    page.get_by_role("button", name="PCA 2D", exact=True)
                 ).to_be_disabled()
                 expect(
                     page.get_by_role("button", name="Constellation", exact=True)
@@ -243,6 +243,7 @@ def browser_checks(base: str, screenshots: Path) -> dict:
                 expect(
                     page.get_by_text("What this partition", exact=False).first
                 ).to_be_visible()
+                page.get_by_text("Methodology and Reproducibility", exact=True).click()
                 evidence_heading = page.get_by_text(
                     "Two identities, never one score", exact=False
                 ).first
@@ -258,9 +259,9 @@ def browser_checks(base: str, screenshots: Path) -> dict:
 
             page = browser.new_page(viewport={"width": 1440, "height": 900})
             page.goto(base, wait_until="load", timeout=60000)
-            expect(
-                page.get_by_text("Live verified aggregates", exact=False).first
-            ).to_be_visible(timeout=45000)
+            expect(page.get_by_text("API ready", exact=True).first).to_be_visible(
+                timeout=45000
+            )
             focus = []
             for _ in range(12):
                 page.keyboard.press("Tab")
@@ -285,9 +286,9 @@ def browser_checks(base: str, screenshots: Path) -> dict:
                 viewport={"width": 1440, "height": 900}, reduced_motion="reduce"
             )
             reduced.goto(base, wait_until="load", timeout=60000)
-            expect(
-                reduced.get_by_text("Live verified aggregates", exact=False).first
-            ).to_be_visible(timeout=45000)
+            expect(reduced.get_by_text("API ready", exact=True).first).to_be_visible(
+                timeout=45000
+            )
             transition = reduced.locator(".obs-card").first.evaluate(
                 "e => getComputedStyle(e).transitionDuration"
             )

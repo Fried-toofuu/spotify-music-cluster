@@ -44,7 +44,7 @@ def _base(height=320, *, title=None, showlegend=False):
             yanchor="bottom",
             y=1.02,
             x=0,
-            font=dict(size=11, color=MUTED),
+            font=dict(size=12, color=MUTED),
             bgcolor="rgba(0,0,0,0)",
         ),
         hoverlabel=dict(
@@ -56,18 +56,20 @@ def _base(height=320, *, title=None, showlegend=False):
         transition=dict(duration=0),
     )
     figure.update_xaxes(
+        automargin=True,
         gridcolor=LINE,
         zerolinecolor=TOKENS["line_strong"],
         linecolor=LINE,
-        tickfont=dict(color=MUTED, size=11),
-        title_font=dict(color=MUTED, size=11),
+        tickfont=dict(color=MUTED, size=12),
+        title_font=dict(color=MUTED, size=12),
     )
     figure.update_yaxes(
+        automargin=True,
         gridcolor=LINE,
         zerolinecolor=TOKENS["line_strong"],
         linecolor=LINE,
-        tickfont=dict(color=MUTED, size=11),
-        title_font=dict(color=MUTED, size=11),
+        tickfont=dict(color=MUTED, size=12),
+        title_font=dict(color=MUTED, size=12),
     )
     return figure
 
@@ -107,7 +109,7 @@ def distribution_figure(profiles: dict) -> go.Figure:
         text=text,
         textposition="outside",
         cliponaxis=False,
-        textfont=dict(color=INK, size=11),
+        textfont=dict(color=INK, size=12),
         hovertemplate=(
             "<b>%{y}</b><br>Training tracks: %{x:,}"
             "<br>Share of population: %{text}<extra></extra>"
@@ -130,7 +132,7 @@ def contributions_figure(profiles: dict) -> go.Figure:
     ordered = sorted(F9, key=lambda name: shares.get(name, 0), reverse=True)
     values = [shares.get(name, 0) for name in ordered]
     dominant = ordered[0]
-    colors = [AMBER if name == dominant else TOKENS["line_strong"] for name in ordered]
+    colors = [AMBER if name == dominant else TOKENS["muted"] for name in ordered]
     figure = _base(340, title="Share of between-cluster sum of squares")
     figure.add_bar(
         x=values,
@@ -141,8 +143,8 @@ def contributions_figure(profiles: dict) -> go.Figure:
         textposition="auto",
         insidetextanchor="end",
         cliponaxis=False,
-        textfont=dict(color=INK, size=11),
-        insidetextfont=dict(color="#04110f", size=11),
+        textfont=dict(color=INK, size=12),
+        insidetextfont=dict(color="#04110f", size=12),
         customdata=[between.get(name, 0) for name in ordered],
         hovertemplate=(
             "<b>%{y}</b><br>Share: %{x:.3%}"
@@ -157,13 +159,13 @@ def contributions_figure(profiles: dict) -> go.Figure:
     figure.update_yaxes(autorange="reversed", title=None, automargin=True)
     figure.update_xaxes(automargin=True)
     figure.add_annotation(
-        text="Internal training-population separation, not prediction accuracy.",
+        text="Training-population separation.<br>Not prediction accuracy.",
         xref="paper",
         yref="paper",
         x=0,
         y=-0.22,
         showarrow=False,
-        font=dict(color=MUTED, size=10),
+        font=dict(color=MUTED, size=12),
         xanchor="left",
     )
     figure.update_layout(margin=dict(l=8, r=18, t=44, b=58))
@@ -284,7 +286,7 @@ def research_figure(comparison: dict) -> go.Figure:
         x=0,
         y=-0.24,
         showarrow=False,
-        font=dict(color=MUTED, size=10),
+        font=dict(color=MUTED, size=12),
         xanchor="left",
     )
     return figure

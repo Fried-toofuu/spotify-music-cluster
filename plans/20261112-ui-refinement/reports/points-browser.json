@@ -1,0 +1,210 @@
+{
+  "base": "http://127.0.0.1:7872/",
+  "checks": {
+    "four-tabs-no-overflow-1440": "PASS",
+    "prediction-keyboard-exact-error-recovery-1440": "PASS",
+    "research-disclosure-1440": "PASS",
+    "keyboard-sample-and-tab-continuity-1440": "PASS",
+    "refresh-and-selection-error-identity-1440": "PASS",
+    "hover-click-neighbors-filter-density-1440": "PASS",
+    "refresh-camera-continuity": "PASS",
+    "camera-rotation-filter-continuity-reset": "PASS",
+    "refresh-constellation-reuse-camera-continuity": "PASS",
+    "constellation-render-pick-filter-reuse-dispose": "PASS",
+    "four-tabs-no-overflow-768": "PASS",
+    "prediction-keyboard-exact-error-recovery-768": "PASS",
+    "research-disclosure-768": "PASS",
+    "keyboard-sample-and-tab-continuity-768": "PASS",
+    "refresh-and-selection-error-identity-768": "PASS",
+    "hover-click-neighbors-filter-density-768": "PASS",
+    "four-tabs-no-overflow-375": "PASS",
+    "prediction-keyboard-exact-error-recovery-375": "PASS",
+    "research-disclosure-375": "PASS",
+    "mobile-rotation-opt-in": "PASS",
+    "keyboard-sample-and-tab-continuity-375": "PASS",
+    "refresh-and-selection-error-identity-375": "PASS",
+    "hover-click-neighbors-filter-density-375": "PASS",
+    "keyboard-focus-reduced-motion": "PASS",
+    "constellation-load-fallback": "PASS",
+    "webgl-unavailable-svg-fallback": "PASS"
+  },
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "map_top": 183.7,
+      "ready_seconds": 2.625
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "map_top": 524.6,
+      "ready_seconds": 2.203
+    },
+    {
+      "width": 375,
+      "height": 812,
+      "map_top": 564.6,
+      "ready_seconds": 2.125
+    }
+  ],
+  "errors": [],
+  "failed_requests": [
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    }
+  ]
+}

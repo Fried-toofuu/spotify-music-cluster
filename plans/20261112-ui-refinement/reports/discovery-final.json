@@ -1,0 +1,91 @@
+{
+  "base": "http://127.0.0.1:7872",
+  "pagesInSitemap": 0,
+  "pagesChecked": 1,
+  "findings": [
+    {
+      "severity": "warn",
+      "check": "robots",
+      "url": "http://127.0.0.1:7872/robots.txt",
+      "message": "robots.txt has no Sitemap: line"
+    },
+    {
+      "severity": "info",
+      "check": "ai-crawlers",
+      "url": "http://127.0.0.1:7872/robots.txt",
+      "message": "no training or user-fetch AI token is blocked site-wide"
+    },
+    {
+      "severity": "error",
+      "check": "sitemap",
+      "url": "http://127.0.0.1:7872/sitemap.xml",
+      "message": "sitemap missing or not XML (status 404)"
+    },
+    {
+      "severity": "warn",
+      "check": "llms-txt",
+      "url": "http://127.0.0.1:7872/llms.txt",
+      "message": "llms.txt missing (status 404)"
+    },
+    {
+      "severity": "warn",
+      "check": "llms-full-txt",
+      "url": "http://127.0.0.1:7872/llms-full.txt",
+      "message": "llms-full.txt missing (status 404); expected when the site has docs or long-form content"
+    },
+    {
+      "severity": "error",
+      "check": "title",
+      "url": "http://127.0.0.1:7872/",
+      "message": "missing <title>"
+    },
+    {
+      "severity": "error",
+      "check": "meta-description",
+      "url": "http://127.0.0.1:7872/",
+      "message": "missing meta description"
+    },
+    {
+      "severity": "warn",
+      "check": "canonical",
+      "url": "http://127.0.0.1:7872/",
+      "message": "missing canonical link"
+    },
+    {
+      "severity": "info",
+      "check": "open-graph",
+      "url": "http://127.0.0.1:7872/",
+      "message": "missing og:image:alt"
+    },
+    {
+      "severity": "warn",
+      "check": "json-ld",
+      "url": "http://127.0.0.1:7872/",
+      "message": "no JSON-LD structured data"
+    },
+    {
+      "severity": "info",
+      "check": "markdown-alternate",
+      "url": "http://127.0.0.1:7872/",
+      "message": "no <link rel=\"alternate\" type=\"text/markdown\">"
+    },
+    {
+      "severity": "warn",
+      "check": "server-render",
+      "url": "http://127.0.0.1:7872/",
+      "message": "server HTML has under 200 characters of text; crawlers that skip JavaScript see an empty page"
+    },
+    {
+      "severity": "warn",
+      "check": "markdown-variant",
+      "url": "http://127.0.0.1:7872/index.html.md",
+      "message": "markdown twin missing (tried http://127.0.0.1:7872/index.html.md, http://127.0.0.1:7872/index.md; status 404)"
+    },
+    {
+      "severity": "info",
+      "check": "content-negotiation",
+      "url": "http://127.0.0.1:7872/",
+      "message": "no markdown for Accept: text/markdown (optional)"
+    }
+  ]
+}

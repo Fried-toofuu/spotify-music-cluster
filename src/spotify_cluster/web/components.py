@@ -53,23 +53,15 @@ BRAND_MARK = """
   <circle cx="33.5" cy="12" r="1.8" fill="#f5c76a"/>
 </svg>
 """
-HERO = f"""
+HERO = """
 <div class="obs-hero">
-  <span class="obs-kicker">Unsupervised acoustic intelligence</span>
+  <span class="obs-kicker">An instrument for acoustic discovery</span>
   <h1>Music, mapped by sound.</h1>
-  <p>An acoustic observatory built from 89,741 canonical Spotify tracks. Explore
-  the fitted cluster space, inspect the descriptors behind the partition and test
-  your own nine-dimensional feature vector against the deployed model.</p>
+  <p>Explore 89,741 canonical Spotify tracks by acoustic similarity.
+  Inspect a sample or test nine descriptors.</p>
   <div class="obs-hero-meta">
-    <span class="obs-tag"><strong>F9</strong> acoustic descriptors</span>
-    <span class="obs-tag"><strong>RobustScaler</strong> geometry</span>
-    <span class="obs-tag"><strong>K-Means</strong> · K = 2</span>
-    <span class="obs-tag">Training-population study</span>
-    <span class="obs-tag">Historical equivalence <strong>NOT VERIFIED</strong></span>
+    <span class="obs-note obs-mono">F9 · RobustScaler · K-Means / K2</span>
   </div>
-  <p class="obs-caveat"><strong>Read this first.</strong> {html.escape(CAVEAT)} The
-  dominant finding is scientific, not flattering: instrumentalness drives almost
-  all of this partition's scaled-space separation.</p>
 </div>
 """
 
@@ -91,9 +83,6 @@ def feature_value(value, feature):
 
 
 def brandbar_html(*, ready=False, warning=False):
-    state = "Live verified aggregates" if ready else "Backend offline"
-    klass = "obs-live" if ready else "obs-live offline"
-    note = " · partial data" if warning and ready else ""
     return f"""
 <div class="obs-brandbar">
   <div class="obs-brand">{BRAND_MARK}
@@ -101,10 +90,6 @@ def brandbar_html(*, ready=False, warning=False):
       <div class="obs-brand-name">Acoustic Observatory</div>
       <div class="obs-brand-sub">Spotify Music Clustering</div>
     </div>
-  </div>
-  <div class="obs-brand-right">
-    <span class="{klass}">{state}{note}</span>
-    <span class="obs-tag">F9 · RobustScaler · K-Means</span>
   </div>
 </div>
 """
@@ -133,7 +118,10 @@ def footer_html(model=None):
 def status_html(ready, message, warnings=None):
     warnings = warnings or []
     klass = "obs-live" if ready else "obs-live offline"
-    label = "API ready" if ready else "API unavailable"
+    loading = not ready and message.startswith("Loading")
+    label = "Connecting" if loading else "API ready" if ready else "API unavailable"
+    if loading:
+        klass = "obs-live connecting"
     extra = ""
     if warnings:
         extra = (
@@ -142,9 +130,15 @@ def status_html(ready, message, warnings=None):
             + "</div>"
         )
     return (
-        f'<div class="obs-card tight"><span class="{klass}">{label}</span> '
-        f'<span class="obs-muted" style="margin-left:8px">{e(message)}</span>'
-        f"{extra}</div>"
+        f'<div class="obs-api-status" role="status" aria-live="polite">'
+        f'<span class="{klass}" title="{e(message)}">{label}</span>'
+        + (
+            f'<span class="obs-note">{e(message)} The service may be waking up; '
+            "try Refresh live data shortly.</span>"
+            if not ready
+            else ""
+        )
+        + f"{extra}</div>"
     )
 
 
@@ -489,9 +483,14 @@ def cleared_prediction_outputs():
     )
 
 
-def error_card_html(message):
+def error_card_html(message, *, sample_index=None):
+    attributes = (
+        f'class="obs-card obs-selection-error" data-sample="{e(sample_index)}"'
+        if sample_index is not None
+        else 'class="obs-card"'
+    )
     return (
-        '<div class="obs-card"><span class="obs-kicker">Could not complete</span>'
+        f'<div {attributes}><span class="obs-kicker">Could not complete</span>'
         f'<p class="obs-muted" style="margin:6px 0 0">{e(message)}</p></div>'
     )
 
@@ -504,17 +503,17 @@ def selection_html(result):
         for name, value in point["features"].items()
     )
     rows = "".join(
-        f"<tr><td>#{entry['index']}</td>"
-        f"<td><span class='obs-badge c{entry['cluster']}'>"
+        f"<tr><td data-label='Sample'>#{entry['index']}</td>"
+        f"<td data-label='Cluster'><span class='obs-badge c{entry['cluster']}'>"
         f"<span class='swatch'></span>Cluster {entry['cluster']}</span></td>"
-        f"<td>{feature_value(entry['features']['instrumentalness'], 'instrumentalness')}</td>"
-        f"<td>{feature_value(entry['features']['energy'], 'energy')}</td>"
-        f"<td>{entry['distance']:.4f}</td></tr>"
+        f"<td data-label='Instrumentalness'>{feature_value(entry['features']['instrumentalness'], 'instrumentalness')}</td>"
+        f"<td data-label='Energy'>{feature_value(entry['features']['energy'], 'energy')}</td>"
+        f"<td data-label='Distance'>{entry['distance']:.4f}</td></tr>"
         for entry in result["neighbors"]
     )
     coordinates = ", ".join(f"{value:+.2f}" for value in point["coordinates"])
     return f"""
-<div class="obs-card">
+<div class="obs-card obs-selected-track" data-sample="{point["index"]}">
   <span class="obs-kicker">Selected sample</span>
   <h3>Sample #{point["index"]} · Cluster {point["cluster"]}</h3>
   <p class="obs-footnote">PCA coordinates ({coordinates}) are visualization
@@ -538,14 +537,23 @@ def selection_placeholder_html(viz_meta=None):
         and viz_meta.get("artifact_mode") == "aggregate"
     ):
         return (
-            '<div class="obs-card"><span class="obs-kicker">Sample inspector</span>'
-            '<p class="obs-muted">Aggregate mode does not expose individual points. '
-            "Open the density view or use the profile tables below.</p></div>"
+            '<div class="obs-card obs-guide"><span class="obs-kicker">Explorer Guide</span>'
+            "<h3>Read population density</h3><p>Each cell summarizes training tracks. "
+            "Color encodes track count on a logarithmic scale. Hover a cell for its "
+            'count, Cluster 1 share and mean instrumentalness.</p><p class="obs-footnote">'
+            "Aggregate mode does not expose individual points. Compare raw-unit "
+            "profiles below; sample proportions never stand for population proportions.</p></div>"
         )
     return (
-        '<div class="obs-card"><span class="obs-kicker">Sample inspector</span>'
-        '<p class="obs-muted">Select a point in the map to inspect its permitted '
-        "acoustic descriptors and nearest sampled tracks.</p></div>"
+        '<div class="obs-card obs-guide"><span class="obs-kicker">Explorer Guide</span>'
+        "<h3>Pick a sample, follow the sound</h3>"
+        "<p>Select a point to open the Sample inspector: nine raw descriptors and "
+        "nearest sampled tracks in fitted RobustScaler F9 space.</p>"
+        "<p>Use Both to compare clusters, or isolate Cluster 0 or Cluster 1. "
+        "Drag to pan in 2D or orbit in 3D. Reset view restores the camera.</p>"
+        '<p class="obs-footnote">PCA is visualization only. Sample numbers are local '
+        "indices, never Spotify track IDs. The stratified sample does not show "
+        "natural population proportions.</p></div>"
     )
 
 
@@ -630,17 +638,9 @@ no comparison metric is fabricated.</p></div>
     archived = (research or {}).get("archived_evidence")
     if archived:
         archived_block = f"""
-<table class="obs-neighbors" style="margin-top:10px">
-  <thead><tr><th>Archived historical evidence</th><th>Value</th><th>Status</th></tr></thead>
-  <tbody>
-    <tr><td>Holdout Silhouette</td><td>{archived["holdout_silhouette"]:.6f}</td>
-        <td>Archived · one-time · closed</td></tr>
-    <tr><td>Holdout Davies–Bouldin</td><td>{archived["holdout_davies_bouldin"]:.6f}</td>
-        <td>Archived · one-time · closed</td></tr>
-    <tr><td>Holdout Calinski–Harabasz</td><td>{archived["holdout_calinski_harabasz"]:,.3f}</td>
-        <td>Archived · one-time · closed</td></tr>
-  </tbody>
-</table>
+<p class="obs-footnote">Archived historical metrics are available in the
+Supporting figures and exact archived evidence section below. They remain one-time,
+closed evidence of the historical estimator.</p>
 <p class="obs-footnote" style="margin-top:8px">{e(archived["warning"])}</p>
 """
     else:
@@ -657,6 +657,15 @@ target, so there is no accuracy score to report. The model groups numerical
 acoustic descriptors by similarity; the meaning of a cluster comes from the
 current artifact's raw-unit profiles, not from its numeric label.</p>
 
+
+<h2>Research Findings</h2>
+{dominant_block}
+<details class="obs-research-layer" open>
+  <summary>Model Comparison</summary>
+  {comparison}
+</details>
+<details class="obs-research-layer">
+  <summary>Methodology and Reproducibility</summary>
 <div class="obs-grid-2 obs-section">
   <div class="obs-card">
     <span class="obs-kicker">01 · Data</span>
@@ -683,8 +692,6 @@ current artifact's raw-unit profiles, not from its numeric label.</p>
   </div>
 </div>
 
-{dominant_block}
-
 <div class="obs-card obs-section">
   <span class="obs-kicker">04 · Historical evidence vs deployed model</span>
   <h3>Two identities, never one score</h3>
@@ -701,7 +708,6 @@ current artifact's raw-unit profiles, not from its numeric label.</p>
   independent Holdout score.</p>
 </div>
 
-{comparison}
 
 <div class="obs-card obs-section">
   <span class="obs-kicker">05 · Limits and reproducibility</span>
@@ -724,6 +730,7 @@ current artifact's raw-unit profiles, not from its numeric label.</p>
   · <a href="{e(DOC_LINKS["model"])}" target="_blank" rel="noopener noreferrer">Model serving</a>
   · <a href="{e(DOC_LINKS["visualization"])}" target="_blank" rel="noopener noreferrer">Visualization pipeline</a>.</p>
 </div>
+</details>
 </div>
 """
 
@@ -916,8 +923,18 @@ class Handlers:
         if not data or not data.get("viz_points"):
             return selection_placeholder_html((data or {}).get("viz_meta"))
         index = getattr(evt, "index", None)
+        if index is None:
+            mode = getattr(evt, "_data", {}).get("view")
+            meta = (
+                {"available": True, "artifact_mode": "aggregate"}
+                if mode == "density"
+                else data.get("viz_meta")
+            )
+            return selection_placeholder_html(meta)
         if type(index) is not int or index < 0:
-            return error_card_html("The selected point is outside the sample.")
+            return error_card_html(
+                "The selected point is outside the sample.", sample_index=index
+            )
         try:
             result = self.client.visualization_neighbors(index, 8)
             if result["model_id"] != data["model"]["model_id"]:
@@ -926,7 +943,7 @@ class Handlers:
                 )
             return selection_html(result)
         except (APIError, ValueError) as exc:
-            return error_card_html(str(exc))
+            return error_card_html(str(exc), sample_index=index)
 
     def predict(self, data, *values):
         try:

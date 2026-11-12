@@ -1,0 +1,21 @@
+{
+  "1440": {
+    "mapTop": 818.171875,
+    "overflow": false,
+    "errors": []
+  },
+  "768": {
+    "mapTop": 824.59375,
+    "overflow": false,
+    "errors": []
+  },
+  "375": {
+    "mapTop": 1200.375,
+    "overflow": false,
+    "errors": []
+  },
+  "public": {
+    "status": 200,
+    "title": ""
+  }
+}

@@ -15,3 +15,5 @@
   avoid unnecessary infrastructure.
 - Follow [README.md](README.md) for setup and checks and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   for implementation ownership. Verify results before claiming success.
+- Read [docs/DESIGN.md](docs/DESIGN.md) before UI changes and verify actual loaded
+  screens at desktop, tablet and mobile widths using [docs/WEB.md](docs/WEB.md).

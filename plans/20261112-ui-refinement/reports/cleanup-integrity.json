@@ -1,0 +1,14 @@
+{
+  "owned_verification_ports_released": {
+    "7871": true,
+    "7872": true,
+    "7873": true,
+    "8010": true
+  },
+  "protected_files_checked": 14,
+  "protected_files_changed": [],
+  "preexisting_services_left_running": [
+    8000,
+    7860
+  ]
+}

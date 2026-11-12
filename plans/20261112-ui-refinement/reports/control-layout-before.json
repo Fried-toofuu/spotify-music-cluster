@@ -1,0 +1,207 @@
+{
+  "checks": [
+    {
+      "width": 1440,
+      "inputs": [
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        }
+      ],
+      "accordion": {
+        "left": 13,
+        "height": 44,
+        "outerRadius": "14px",
+        "innerRadius": "9px"
+      }
+    },
+    {
+      "width": 768,
+      "inputs": [
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        }
+      ],
+      "accordion": {
+        "left": 13,
+        "height": 44,
+        "outerRadius": "14px",
+        "innerRadius": "9px"
+      }
+    },
+    {
+      "width": 375,
+      "inputs": [
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44,
+          "parentHeight": 24,
+          "clipped": true
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 105.890625,
+          "clipped": false
+        }
+      ],
+      "accordion": {
+        "left": 13,
+        "height": 44,
+        "outerRadius": "14px",
+        "innerRadius": "9px"
+      }
+    }
+  ],
+  "errors": [
+    "1440: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "1440: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "1440: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "1440: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "1440: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "1440: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "1440: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "1440 overview-space: unequal PCA widths",
+    "1440 overview-space: PCA target/margin mismatch",
+    "1440 explorer-space: unequal PCA widths",
+    "1440 explorer-space: PCA target/margin mismatch",
+    "768: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "768: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "768: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "768: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "768: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "768: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "768: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "768 overview-space: unequal PCA widths",
+    "768 overview-space: PCA target/margin mismatch",
+    "768 explorer-space: unequal PCA widths",
+    "768 explorer-space: PCA target/margin mismatch",
+    "375: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "375: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "375: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "375: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "375: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "375: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "375: input clipped {'height': 44, 'parentHeight': 24, 'clipped': True}",
+    "375 overview-space: unequal PCA widths",
+    "375 overview-space: PCA target/margin mismatch",
+    "375 explorer-space: unequal PCA widths",
+    "375 explorer-space: PCA target/margin mismatch"
+  ]
+}

@@ -34,36 +34,27 @@ TAB_NAMES = (
 
 
 def _scroll_result_on_submit():
-    return """(...args) => {
-      let attempts = 0;
-      const reveal = () => {
-        const target =
-          document.querySelector('#prediction-result .obs-prediction') ||
-          document.querySelector('#prediction-result .obs-card');
-        if (!target) {
-          attempts += 1;
-          if (attempts < 20) window.setTimeout(reveal, 200);
-          return;
-        }
-        const reduce = window.matchMedia(
-          '(prefers-reduced-motion: reduce)'
-        ).matches;
-        target.scrollIntoView({
-          behavior: reduce ? 'auto' : 'smooth', block: 'start'
-        });
-      };
-      [1200, 2400, 3600].forEach((delay) => window.setTimeout(reveal, delay));
-      return args;
+    return """() => {
+      const target = document.querySelector('#prediction-result .obs-card');
+      if (!target) return;
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
     }"""
 
 
-def _jump(label):
+def _jump(label, *, scroll_top=False):
+    scroll = (
+        "requestAnimationFrame(() => { match.focus({preventScroll: true}); "
+        "window.scrollTo({top: 0, left: 0, behavior: 'instant'}); }); "
+        if scroll_top
+        else ""
+    )
     return (
         "() => { const buttons = Array.from(document.querySelectorAll("
         "'.tab-nav button, button[role=\"tab\"]')); "
         "const match = buttons.find((button) => "
         "button.textContent.trim().toLowerCase().startsWith(" + repr(label) + ")); "
-        "if (match) match.click(); }"
+        "if (match) { match.click(); " + scroll + "} }"
     )
 
 
@@ -99,22 +90,58 @@ def create_app(client=None):
         state = gr.State(None, time_to_live=3600)
         with gr.Row(elem_classes=["obs-brandrow"]):
             brandbar = gr.HTML(brandbar_html(), container=False, padding=False)
-            refresh = gr.Button(
-                "Refresh live data", size="sm", scale=0, variant="secondary"
+            status = gr.HTML(
+                status_html(False, "Loading live aggregates…"),
+                container=False,
+                padding=False,
+                elem_id="api-status",
             )
-        status = gr.HTML(
-            status_html(False, "Loading live aggregates…"),
-            container=False,
-            padding=False,
-        )
+            refresh = gr.Button(
+                "Refresh live data",
+                size="sm",
+                scale=0,
+                variant="secondary",
+                elem_id="refresh-live",
+            )
 
-        with gr.Tabs(overflow_behavior="wrap") as tabs:
+        with gr.Tabs(overflow_behavior="wrap", elem_id="primary-navigation"):
             with gr.Tab("Overview"):
-                gr.HTML(HERO, container=False, padding=False)
-                with gr.Row(elem_id="overview-grid"):
-                    with gr.Column(scale=5, min_width=320):
+                with gr.Row(elem_id="overview-hero"):
+                    with gr.Column(scale=4, min_width=280):
+                        gr.HTML(HERO, container=False, padding=False)
+                        with gr.Row(elem_classes=["obs-nav-actions"]):
+                            go_explore = gr.Button(
+                                "Explore Acoustic Space", variant="primary"
+                            )
+                            go_predict = gr.Button(
+                                "Live Prediction", variant="secondary"
+                            )
+                    with gr.Column(scale=7, min_width=320):
                         overview_space = create_explorer("overview-space", compact=True)
                         overview_note = gr.HTML("", container=False, padding=False)
+                gr.HTML(
+                    '<details class="obs-context"><summary>Scientific '
+                    "Context</summary>"
+                    "<p>Clusters describe acoustic similarity, not "
+                    "verified genres or moods. "
+                    "Centroid distances are not probabilities. "
+                    "Instrumentalness drives most "
+                    "of this partition’s scaled-space "
+                    "separation.</p><p>The deployment is "
+                    "a separate refit; historical equivalence is "
+                    "<strong>NOT VERIFIED</strong>. "
+                    "PCA is for display only. The historical Holdout "
+                    "remains closed.</p></details>",
+                    container=False,
+                    padding=False,
+                )
+                with gr.Row(elem_id="overview-grid"):
+                    with gr.Column(scale=4, min_width=280):
+                        fact_sheet = gr.HTML("", container=False, padding=False)
+                    with gr.Column(scale=4, min_width=280):
+                        finding = gr.HTML("", container=False, padding=False)
+                    with gr.Column(scale=3, min_width=280):
+                        population = gr.HTML("", container=False, padding=False)
                         gr.HTML(
                             '<div class="obs-card tight"><span class="obs-kicker">'
                             'How to read this space</span><p class="obs-footnote">'
@@ -126,50 +153,11 @@ def create_app(client=None):
                             container=False,
                             padding=False,
                         )
-                    with gr.Column(scale=3, min_width=290):
-                        fact_sheet = gr.HTML("", container=False, padding=False)
-                        finding = gr.HTML("", container=False, padding=False)
-                        population = gr.HTML("", container=False, padding=False)
-                gr.HTML(
-                    """
-<div class="obs-section">
-  <div class="obs-section-head">
-    <h2>Three ways in</h2>
-    <span class="obs-note">Start with the map, test a vector,
-    or read the evidence.</span>
-  </div>
-  <div class="obs-grid-3">
-    <div class="obs-card obs-entry">
-      <span class="obs-kicker">01 · Explore</span>
-      <h3>Walk the cluster space</h3>
-      <p>Switch between PCA 2D, PCA 3D and aggregate density; filter clusters;
-      inspect a sampled track and its nearest neighbours in fitted scaled F9 space.</p>
-      <span class="obs-entry-link">Open Cluster Explorer →</span>
-    </div>
-    <div class="obs-card obs-entry">
-      <span class="obs-kicker">02 · Test</span>
-      <h3>Score an acoustic vector</h3>
-      <p>Submit nine raw descriptors to the real FastAPI endpoint. Read the assigned
-      cluster, both centroid distances and the current profile — never a fake
-      probability.</p>
-      <span class="obs-entry-link">Open Predict Cluster →</span>
-    </div>
-    <div class="obs-card obs-entry">
-      <span class="obs-kicker">03 · Read</span>
-      <h3>Follow the research</h3>
-      <p>Trace the authorized dataset, F5/F9 representations, K-Means and GMM
-      comparisons, archived historical evidence and the limits of the deployed
-      model.</p>
-      <span class="obs-entry-link">Open Research →</span>
-    </div>
-  </div>
-</div>
-"""
+                go_research = gr.Button(
+                    "Read the research",
+                    variant="secondary",
+                    elem_classes=["obs-research-link"],
                 )
-                with gr.Row(elem_classes=["obs-nav-actions"]):
-                    go_explore = gr.Button("Cluster Explorer", variant="secondary")
-                    go_predict = gr.Button("Predict Cluster", variant="secondary")
-                    go_research = gr.Button("Research", variant="secondary")
                 overview_identity = gr.HTML("", container=False, padding=False)
 
             with gr.Tab("Cluster Explorer"):
@@ -179,51 +167,65 @@ def create_app(client=None):
                     "The map is a visualization projection; the model's assignments "
                     "come from the deployed F9 representation."
                 )
-                explorer_plot = create_explorer("explorer-space")
-                explorer_disclosure = gr.HTML(EMPTY, container=False, padding=False)
-                with gr.Row(elem_id="explorer-panels"):
-                    with gr.Column(scale=5, min_width=320):
+                with gr.Row(elem_id="explorer-map-row"):
+                    with gr.Column(scale=8, min_width=320):
+                        explorer_plot = create_explorer("explorer-space")
+                        with gr.Accordion(
+                            "Sample provenance and scientific context", open=False
+                        ):
+                            explorer_disclosure = gr.HTML(
+                                EMPTY, container=False, padding=False
+                            )
+                    with gr.Column(
+                        scale=4, min_width=280, elem_id="explorer-inspector"
+                    ):
                         explorer_detail = gr.HTML(
                             "",
                             container=False,
                             padding=False,
                             elem_id="explorer-detail",
                         )
-                    with gr.Column(scale=4, min_width=300):
-                        gr.Markdown("### Compare acoustic profiles")
-                        with gr.Row():
-                            selection = gr.Dropdown(
-                                ["Compare Both", "Cluster 0", "Cluster 1"],
-                                value="Compare Both",
-                                label="Cluster selection",
-                                min_width=160,
-                            )
-                            feature = gr.Dropdown(
-                                [(value.title(), value) for value in F9],
-                                value="instrumentalness",
-                                label="Acoustic feature",
-                                min_width=160,
-                            )
-                            statistic = gr.Radio(
-                                ["Mean", "Median"], value="Mean", label="Statistic"
-                            )
-                        profile_text = gr.Markdown(EMPTY)
-                        compare_plot = plot(
-                            value=figures.empty_figure(
-                                "Refresh live data to compare profiles."
-                            )
+                with gr.Column(elem_id="explorer-panels"):
+                    gr.Markdown("### Compare acoustic profiles")
+                    with gr.Row():
+                        selection = gr.Dropdown(
+                            ["Compare Both", "Cluster 0", "Cluster 1"],
+                            value="Compare Both",
+                            label="Cluster selection",
+                            min_width=160,
                         )
-                        compare_table = table(
-                            label="Nine-feature comparison",
-                            elem_id="feature-table",
+                        feature = gr.Dropdown(
+                            [(value.title(), value) for value in F9],
+                            value="instrumentalness",
+                            label="Acoustic feature",
+                            min_width=160,
                         )
-                        with gr.Accordion("Detailed aggregate statistics", open=False):
-                            details = table(label="Raw-unit aggregate statistics")
-                            gr.Markdown(
-                                "Std is sample standard deviation (ddof=1). Missing "
-                                "optional statistics appear blank. Values describe the "
-                                "training population, not a genre or a listener mood."
-                            )
+                        statistic = gr.Radio(
+                            ["Mean", "Median"], value="Mean", label="Statistic"
+                        )
+                    profile_text = gr.Markdown(EMPTY)
+                    compare_plot = plot(
+                        value=figures.empty_figure(
+                            "Refresh live data to compare profiles."
+                        )
+                    )
+                    compare_table = table(
+                        label="Nine-feature comparison",
+                        elem_id="feature-table",
+                    )
+                    gr.HTML(
+                        '<p class="obs-table-hint">Scroll the comparison table '
+                        "horizontally for both clusters and feature units.</p>",
+                        container=False,
+                        padding=False,
+                    )
+                    with gr.Accordion("Detailed aggregate statistics", open=False):
+                        details = table(label="Raw-unit aggregate statistics")
+                        gr.Markdown(
+                            "Std is sample standard deviation (ddof=1). Missing "
+                            "optional statistics appear blank. Values describe the "
+                            "training population, not a genre or a listener mood."
+                        )
                 gr.Markdown(
                     "**How to read the panel:** the browser never fits a model. "
                     "Cluster assignments and point inspection come from the FastAPI "
@@ -332,16 +334,21 @@ def create_app(client=None):
                             padding=False,
                             elem_id="prediction-result",
                         )
-                        distance_plot = plot(
-                            value=figures.empty_figure(
-                                "Submit a feature vector to see distances."
+                        with gr.Accordion(
+                            "Distance Breakdown",
+                            open=False,
+                            elem_id="distance-breakdown",
+                        ):
+                            distance_plot = plot(
+                                value=figures.empty_figure(
+                                    "Submit a feature vector to see distances."
+                                )
                             )
-                        )
-                        distance_table = table(
-                            headers=["Cluster", "Distance"],
-                            label="Exact centroid distances",
-                        )
-                        gr.Markdown(DISTANCE_NOTE)
+                            distance_table = table(
+                                headers=["Cluster", "Distance"],
+                                label="Exact centroid distances",
+                            )
+                            gr.Markdown(DISTANCE_NOTE)
                 gr.HTML(
                     '<div class="obs-card tight"><span class="obs-kicker">Model '
                     'boundary</span><p class="obs-footnote">This is unsupervised '
@@ -361,27 +368,40 @@ def create_app(client=None):
                     container=False,
                     padding=False,
                 )
-                gr.Markdown(
-                    "### Figures\n"
-                    "The contribution chart shows internal between-cluster separation "
-                    "in fitted scaled space; the agreement chart compares partitions "
-                    "on identical rows. Neither is a quality leaderboard."
-                )
-                research_plot = plot(
-                    value=figures.empty_figure(
-                        "Refresh live data to load contributions."
+                with gr.Accordion(
+                    "Supporting figures and exact archived evidence",
+                    open=False,
+                    elem_id="research-evidence",
+                ):
+                    gr.Markdown(
+                        "### Figures\n"
+                        "The contribution chart shows internal "
+                        "between-cluster separation "
+                        "in fitted scaled space; the agreement chart "
+                        "compares partitions "
+                        "on identical rows. Neither is a quality leaderboard."
                     )
-                )
-                research_comparison_plot = plot(
-                    value=figures.empty_figure("Refresh live data to load comparisons.")
-                )
-                archived_table = table(label="Archived historical evidence · closed")
-                gr.Markdown(
-                    "Values above are shown only when served by the research artifact. "
-                    "No historical Holdout evaluation is rerun, extended or attached "
-                    "to deployment predictions.",
-                    elem_id="research-footnote",
-                )
+                    research_plot = plot(
+                        value=figures.empty_figure(
+                            "Refresh live data to load contributions."
+                        )
+                    )
+                    research_comparison_plot = plot(
+                        value=figures.empty_figure(
+                            "Refresh live data to load comparisons."
+                        )
+                    )
+                    archived_table = table(
+                        label="Archived historical evidence · closed"
+                    )
+                    gr.Markdown(
+                        "Values above are shown only when served by the "
+                        "research artifact. "
+                        "No historical Holdout evaluation is rerun, "
+                        "extended or attached "
+                        "to deployment predictions.",
+                        elem_id="research-footnote",
+                    )
 
         gr.HTML(footer_html(), container=False, padding=False)
 
@@ -417,17 +437,12 @@ def create_app(client=None):
             outputs=refresh_outputs,
             api_name="refresh_live_data",
         )
-        tabs.select(
-            handlers.load_explorer,
-            [state],
-            [explorer_plot, explorer_disclosure, explorer_detail],
-            api_visibility="private",
-        )
         explorer_plot.select(
             handlers.explorer_select,
             [state],
             [explorer_detail],
             api_visibility="private",
+            trigger_mode="always_last",
         )
         for trigger in (
             state.change,
@@ -458,8 +473,8 @@ def create_app(client=None):
             [prediction_status, prediction, distance_plot, distance_table],
             api_name="predict_cluster",
             concurrency_limit=1,
-            js=_scroll_result_on_submit(),
-        )
+            show_progress="minimal",
+        ).then(fn=None, js=_scroll_result_on_submit())
         example.click(
             handlers.load_example,
             outputs=[
@@ -481,7 +496,7 @@ def create_app(client=None):
         )
         go_explore.click(_noop, js=_jump("cluster explorer"))
         go_predict.click(_noop, js=_jump("predict cluster"))
-        go_research.click(_noop, js=_jump("research"))
+        go_research.click(_noop, js=_jump("research", scroll_top=True))
     return app
 
 

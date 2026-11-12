@@ -1,0 +1,173 @@
+{
+  "checks": [
+    {
+      "width": 1440,
+      "inputs": [
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        }
+      ],
+      "accordion": {
+        "left": 16,
+        "height": 48,
+        "outerRadius": "9px",
+        "innerRadius": "8px"
+      }
+    },
+    {
+      "width": 768,
+      "inputs": [
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 89.09375,
+          "clipped": false
+        }
+      ],
+      "accordion": {
+        "left": 16,
+        "height": 48,
+        "outerRadius": "9px",
+        "innerRadius": "8px"
+      }
+    },
+    {
+      "width": 375,
+      "inputs": [
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44,
+          "parentHeight": 46,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 105.890625,
+          "clipped": false
+        },
+        {
+          "height": 44.390625,
+          "parentHeight": 105.890625,
+          "clipped": false
+        }
+      ],
+      "accordion": {
+        "left": 16,
+        "height": 48,
+        "outerRadius": "9px",
+        "innerRadius": "8px"
+      }
+    }
+  ],
+  "errors": []
+}

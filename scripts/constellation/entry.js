@@ -182,6 +182,12 @@ export function createConstellation(options) {
     render();
   }
 
+  function clearSelection() {
+    selectedIndex = null;
+    selection.visible = false;
+    render();
+  }
+
   function setVisibleClusters(labels) {
     visibleClusters.clear();
     for (const label of labels || []) {
@@ -258,5 +264,5 @@ export function createConstellation(options) {
     }
   }
 
-  return { dispose, resetCamera, resize, select, setVisibleClusters, projectPoint };
+  return { dispose, resetCamera, resize, select, clearSelection, setVisibleClusters, projectPoint };
 }

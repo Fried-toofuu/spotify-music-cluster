@@ -64,7 +64,8 @@ asset is served from the installed `plotly` package; both are pinned by
 **Verification status:** the Docker CLI is not installed in the development
 environment used for this implementation, so the container build and compose
 startup were not executed. The configuration is prepared and syntax-reviewed;
-actual publication remains blocked (below).
+container execution in that original environment was not verified. The
+existing hosted-service status is recorded below.
 
 ## Dependency audit
 
@@ -173,10 +174,21 @@ any deployment without that approval, mount the aggregate artifact and set
 
 ## Public deployment status
 
-The local application, the aggregate-mode compose configuration, the
-points-mode Render blueprint and the Hugging Face Space package are complete. A
-public URL requires an operator account on the chosen platform and, for Hugging
-Face dynamic Spaces, a PRO subscription; this environment holds no hosting
-account, so no public URL is claimed. Public per-track coordinates and 3D were
-explicitly approved by the owner on 2026-11-12; ODbL attribution is displayed
-and no track identifiers are distributed.
+The existing owner-operated service is
+<https://acoustic-observatory.onrender.com/>. It serves the approved points mode
+with 2D/3D and constellation controls; free-tier startup may first show Render's
+loading page before Gradio and model readiness become available. Public per-track
+coordinates were explicitly approved by the owner; attribution and the exclusion
+of track identifiers remain required.
+
+A local UI refinement does not itself publish a release. Verify the intended
+source revision, existing readiness, points mode and real browser interactions
+before an authorized push/deployment, then verify them again on the service.
+Do not change the artifact credential source or service settings for UI work.
+If an authorized release fails, follow Render's [rollback procedure](https://render.com/docs/rollbacks)
+using a retained successful deployment. Free services retain the two most recent
+previous deploys; see [free-service limits](https://render.com/docs/free).
+Rollback was not exercised during UI refinement. The original local implementation
+and verification snapshot is recorded in the
+[delivery evidence](../plans/20261112-ui-refinement/reports/delivery.md).
+Use the GitHub deployment records to identify the current published revision.

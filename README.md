@@ -17,7 +17,7 @@ committed to Git.
 ## What the application does
 
 - **Overview:** a research-oriented landing experience with an interactive
-  cluster-space preview, a compact model fact sheet, the dominant
+  cluster-space preview beside a compact introduction, a model fact sheet, the dominant
   instrumentalness finding and clear navigation.
 - **Cluster Explorer:** a genuine PCA 2D/3D Plotly Explorer with zoom/pan/rotate,
   hover, cluster filtering, point selection, nearest sampled tracks in fitted
@@ -160,8 +160,8 @@ free web service, enabling 2D/3D Explorer views over a 6,000-track sample with
 no track identifiers and ODbL attribution. Private artifacts are downloaded from
 the Hugging Face dataset with an `HF_TOKEN` secret. The owner approved public
 per-track coordinates on 2026-11-12. Free Hugging Face Docker Spaces require a
-PRO subscription (HTTP 402 as of 2026-11-12). No public URL is claimed until an
-operator account is connected. See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
+PRO subscription (HTTP 402 as of 2026-11-12). The existing service status and operator release route are recorded in
+[DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Repository boundaries
 
