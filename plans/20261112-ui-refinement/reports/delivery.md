@@ -19,7 +19,7 @@ GitHub deployment records identify the published revision.
 ## Release preparation · 2026-11-13
 
 Fresh verification of the reviewed working tree passed: 244 normal tests with
-6 intentional skips, 3 opt-in real-model/browser integration tests, 29 points-mode
+6 intentional skips, 3 opt-in real-model/browser integration tests, 26 points-mode
 browser checks at 1440×900, 768×1024 and 375×812, responsive/touch/offline edge
 checks, Ruff lint/format, diff whitespace, wheel/sdist build and dependency consistency.
 The notebook, dataset and trusted artifacts retain all 14 protected hashes.
