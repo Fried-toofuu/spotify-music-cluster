@@ -57,7 +57,8 @@ fingerprint, canonical count and deployment profile before writing anything.
 5. Recompute the projection for the full population and verify it against the
    fitted PCA.
 6. Select a deterministic, equal-cap stratified sample per cluster using
-   `numpy.random.default_rng(42)`; sample order is canonical row order.
+   `numpy.random.default_rng(42)`; the selected indices are globally sorted by
+   canonical row order.
 7. Build an aggregate 40×40 PC1/PC2 occupancy grid from the **full** population
    with a minimum cell count of 10.
 8. Verify every artifact invariant, write a checksummed
@@ -128,11 +129,14 @@ bundle or dataset.
 ## Public fallback
 
 If per-track redistribution approval is unavailable, deploy with
-`SPOTIFY_VISUALIZATION_DIR=artifacts/visualization-public-v1`. The Explorer then
-serves the aggregate density view: cells contain at least 10 training tracks,
-are never labeled as individual tracks, and no per-track coordinates or
-features leave the server. The UI states this explicitly. The private points
-mode is not enabled by any public route.
+`SPOTIFY_VISUALIZATION_DIR=artifacts/visualization-public-v1` **and**
+`SPOTIFY_PUBLIC_MODE=1`. The API then refuses a per-track artifact, the
+visualization meta reports unavailable for points, and the points/neighbors
+routes are not reachable. The Explorer serves the aggregate density view: cells
+contain at least 10 training tracks, are never labeled as individual tracks, and
+no per-track coordinates or features leave the server. The UI states this
+explicitly. A local loopback app without public mode may serve the private
+artifact; it is never mounted by the public compose configuration.
 
 ## Performance and limits
 

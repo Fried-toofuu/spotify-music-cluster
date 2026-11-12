@@ -114,3 +114,17 @@ def test_oversized_request_body_is_rejected(api_client):
     )
     assert response.status_code == 413
     assert response.json() == {"detail": "Request body too large"}
+
+
+def test_chunked_oversized_request_body_is_rejected(api_client):
+    def body():
+        yield b"x" * 40_000
+        yield b"x" * 40_000
+
+    response = api_client.post(
+        "/api/v1/predict",
+        content=body(),
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 413
+    assert response.json() == {"detail": "Request body too large"}

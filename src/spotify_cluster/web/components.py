@@ -31,6 +31,7 @@ DOC_LINKS = {
     "model": f"{REPO}/blob/main/docs/MODEL_SERVING.md",
     "visualization": f"{REPO}/blob/main/docs/VISUALIZATION.md",
 }
+CLEARED_PREDICTION_STATUS = "Submit features to request a real API prediction."
 DATASET_URL = DATASET_LICENSE["url"]
 SYNTHETIC_EXAMPLE = [0.72, 0.61, 0.38, 0.44, 118.5, -9.2, 0.05, 0.81, 0.13]
 HELP = {
@@ -405,13 +406,25 @@ def _distinguishing(profiles):
     return ranked[:2]
 
 
-def prediction_card_html(result, profiles=None):
+def prediction_card_html(result, profiles=None, submitted=None):
     label = result["cluster_id"]
     profile = result["profile"]
     other = None
     if profiles and str(1 - label) in profiles.get("clusters", {}):
         other = profiles["clusters"][str(1 - label)]
     meters = _meter_rows(result["distances"], label)
+    submitted_block = ""
+    if submitted:
+        items = "".join(
+            f"<div class='obs-feature'><dt>{e(name)}</dt>"
+            f"<dd>{feature_value(submitted[name], name)}</dd></div>"
+            for name in F9
+        )
+        submitted_block = f"""
+  <details class="obs-footnote" style="margin-top:10px">
+    <summary>Submitted F9 vector (the values this card describes)</summary>
+    <dl class="obs-feature-grid">{items}</dl>
+  </details>"""
     comparisons = ""
     if other:
         parts = []
@@ -445,6 +458,7 @@ def prediction_card_html(result, profiles=None):
   <p class="obs-footnote">The smaller Euclidean distance determines the assignment.
   Distances are not confidence scores and are not converted to probabilities.</p>
   {comparisons}
+  {submitted_block}
   <details class="obs-footnote" style="margin-top:10px">
     <summary>Model identity and scientific limits</summary>
     <p class="obs-mono" style="overflow-wrap:anywhere">{e(result["model_id"])}</p>
@@ -463,6 +477,15 @@ def prediction_empty_html():
         "<h3>Awaiting a feature vector</h3>"
         '<p class="obs-muted">Enter nine acoustic descriptors and submit. The server '
         "performs scaling and inference; the browser never assigns the cluster.</p></div>"
+    )
+
+
+def cleared_prediction_outputs():
+    return (
+        CLEARED_PREDICTION_STATUS,
+        prediction_empty_html(),
+        figures.empty_figure("Submit a feature vector to see distances."),
+        pd.DataFrame(columns=["Cluster", "Distance"]),
     )
 
 
@@ -528,10 +551,40 @@ def selection_placeholder_html(viz_meta=None):
 
 def research_narrative_html(research, profiles, viz_meta=None):
     feature, share = charts.largest_contribution(profiles)
-    feature = feature or "instrumentalness"
-    share = share or 0.0
     p0 = profiles["clusters"]["0"]["mean"]
     p1 = profiles["clusters"]["1"]["mean"]
+    if feature is None or share is None:
+        dominant_block = """
+<div class="obs-card obs-section">
+  <span class="obs-kicker">03 · Dominant finding</span>
+  <h3>Separation diagnostic unavailable</h3>
+  <p class="obs-muted">The current API response does not include between-cluster
+  feature contributions. The F9 profiles and archived research evidence remain
+  available; no percentage or dominant feature is fabricated.</p>
+</div>
+"""
+    else:
+        driver_note = (
+            "Because instrumentalness has a small interquartile range, RobustScaler "
+            "amplifies it, so the partition is largely an instrumental versus "
+            "less-instrumental split."
+            if feature == "instrumentalness"
+            else f"The partition is strongly separated along {feature}."
+        )
+        dominant_block = f"""
+<div class="obs-card obs-section">
+  <span class="obs-kicker">03 · Dominant finding</span>
+  <h3>{e(feature.title())} drives {share:.2%} of the between-cluster separation</h3>
+  <p>Cluster 0's raw mean is {feature_value(p0[feature], feature)}; Cluster 1's is
+  {feature_value(p1[feature], feature)}. {driver_note} The archived research
+  reported high seed stability for this selected configuration; this application
+  does not recompute that diagnostic. The artifact's separation is dominated by
+  this feature. It is not a genre classifier and its separation diagnostic is
+  not accuracy.</p>
+  <p class="obs-footnote">Share of between-cluster sum of squares in fitted
+  RobustScaler space, computed from this artifact's training assignments.</p>
+</div>
+"""
     if research and research.get("available"):
         f5 = research["comparisons"]["f5_kmeans_vs_deployment_f9_kmeans"]
         gmm = research["comparisons"]["f9_kmeans_vs_f9_gmm"]
@@ -630,19 +683,7 @@ current artifact's raw-unit profiles, not from its numeric label.</p>
   </div>
 </div>
 
-<div class="obs-card obs-section">
-  <span class="obs-kicker">03 · Dominant finding</span>
-  <h3>{e(feature.title())} drives {share:.2%} of the between-cluster separation</h3>
-  <p>Cluster 0's raw mean is {feature_value(p0[feature], feature)}; Cluster 1's is
-  {feature_value(p1[feature], feature)}. Because instrumentalness has a small
-  interquartile range, RobustScaler amplifies it, so the partition is largely an
-  <strong>instrumental versus less-instrumental</strong> split. That is a
-  scientifically inconvenient but honest reading: the selected model is stable yet
-  close to a one-feature partition. It is not a genre classifier and its separation
-  diagnostic is not accuracy.</p>
-  <p class="obs-footnote">Share of between-cluster sum of squares in fitted
-  RobustScaler space, computed from this artifact's training assignments.</p>
-</div>
+{dominant_block}
 
 <div class="obs-card obs-section">
   <span class="obs-kicker">04 · Historical evidence vs deployed model</span>
@@ -817,15 +858,10 @@ class Handlers:
             figures.contributions_figure(profiles),
             comparison_figure,
             archived_table(research),
+            *cleared_prediction_outputs(),
         )
 
     def _offline(self, message):
-        empty_profiles = {
-            "clusters": {
-                "0": {"count": 0, "share": 0, "mean": dict.fromkeys(F9, 0)},
-                "1": {"count": 0, "share": 0, "mean": dict.fromkeys(F9, 0)},
-            }
-        }
         return (
             None,
             brandbar_html(ready=False),
@@ -844,12 +880,14 @@ class Handlers:
             EMPTY,
             None,
             selection_placeholder_html(None),
-            research_narrative_html(
-                {"available": False, "reason": "Backend offline"}, empty_profiles
-            ),
+            '<div class="obs-card"><span class="obs-kicker">Research</span>'
+            '<h3>Research evidence unavailable</h3><p class="obs-muted">Start the '
+            "FastAPI backend and refresh. No comparison, archived metric or cluster "
+            "statistic is substituted while the backend is offline.</p></div>",
             figures.empty_figure("Backend offline."),
             figures.empty_figure("Backend offline."),
             archived_table(None),
+            *cleared_prediction_outputs(),
         )
 
     def explore(self, data, selection, feature, statistic):
@@ -892,14 +930,15 @@ class Handlers:
 
     def predict(self, data, *values):
         try:
-            result = self.client.predict(payload(values))
+            features = payload(values)
+            result = self.client.predict(features)
             if data and result["model_id"] != data["model"]["model_id"]:
                 raise APIError(
                     "The backend model changed. Refresh live data before predicting."
                 )
             return (
                 "**Prediction received from the API.**",
-                prediction_card_html(result, (data or {}).get("profiles")),
+                prediction_card_html(result, (data or {}).get("profiles"), features),
                 figures.distances_figure(result),
                 charts.distances(result),
             )
@@ -911,5 +950,5 @@ class Handlers:
                 None,
             )
 
-    def example(self):
-        return tuple(SYNTHETIC_EXAMPLE)
+    def load_example(self):
+        return (*SYNTHETIC_EXAMPLE, *cleared_prediction_outputs())

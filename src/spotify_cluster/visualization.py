@@ -82,7 +82,7 @@ def _stratified_indices(
         selected.sort()
         chosen.append(selected)
         counts.append(int(take))
-    return np.concatenate(chosen), counts
+    return np.sort(np.concatenate(chosen)), counts
 
 
 def _fix_pca_signs(components: np.ndarray, coordinates: np.ndarray) -> None:

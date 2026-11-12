@@ -52,6 +52,11 @@ Predictions contain `model_id`, `cluster_id`, two `distances` in centroid order
 loudness is finite dB. Inputs are never clipped or imputed. Batch inputs are
 bounded to 100 records.
 
+With `SPOTIFY_PUBLIC_MODE=1`, the API refuses a per-track visualization artifact;
+only the aggregate artifact is served, and the points/neighbors routes return
+404 even if a private directory is mounted. The compose public configuration
+sets this mode.
+
 The visualization endpoints are additive and optional. The frontend checks
 `model_id` on every artifact response; mismatched or stale artifacts are
 discarded, and the UI shows an honest unavailable/aggregate state. The API

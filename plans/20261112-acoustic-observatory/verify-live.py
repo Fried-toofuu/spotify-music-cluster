@@ -60,12 +60,16 @@ def wait_ready(process: subprocess.Popen, url: str, timeout: float = 60.0) -> No
 
 def start_api() -> subprocess.Popen:
     public = ROOT / "artifacts" / "visualization-public-v1"
-    private = ROOT / "artifacts" / "visualization-v1"
+    if not public.is_dir():
+        raise RuntimeError(
+            "Public visualization artifact required; prepare visualization-public-v1"
+        )
     env = os.environ.copy()
     env.update(
         {
             "SPOTIFY_MODEL_DIR": str(ROOT / "artifacts" / "deployment-v1"),
-            "SPOTIFY_VISUALIZATION_DIR": str(public if public.is_dir() else private),
+            "SPOTIFY_VISUALIZATION_DIR": str(public),
+            "SPOTIFY_PUBLIC_MODE": "1",
             "SPOTIFY_RESEARCH_DIR": str(ROOT / "artifacts" / "research-v1"),
         }
     )

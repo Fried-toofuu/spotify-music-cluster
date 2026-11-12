@@ -32,8 +32,8 @@ _REPORT = "verification_report.json"
 ARCHIVED_HISTORICAL_EVIDENCE = {
     "label": "Archived historical FULL research evidence",
     "source": (
-        "Original executed notebook ARCHIVED record; frozen historical "
-        "F9/Robust/KMeans/K2 estimator"
+        "Original executed notebook cell 110 ARCHIVED source dictionary; "
+        "frozen historical F9/Robust/KMeans/K2 estimator"
     ),
     "scope": (
         "One-time historical Holdout evaluation on a deterministic 3,000-track "

@@ -29,9 +29,10 @@ profiles, not from its number.
 ## Historical evidence vs deployed model
 
 The archived historical evidence belongs to the **historical** frozen
-F9/Robust/K-Means/K2 estimator and its one-time Holdout evaluation. It is
-reproduced in the Research tab from the labeled research artifact and was
-**not recomputed** for this application:
+F9/Robust/K-Means/K2 estimator and its one-time Holdout evaluation. The values
+are sourced from the notebook's cell 110 ARCHIVED source dictionary, reproduced
+in the Research tab from the labeled research artifact, and were **not
+recomputed** for this application:
 
 | Archived historical metric | Value (archived) |
 |---|---|
@@ -72,7 +73,7 @@ deployment change**.
 |---|---|
 | F5 StandardScaler K-Means vs deployed F9 RobustScaler K-Means | Adjusted Rand Index **+0.0630** |
 | F9 K-Means vs a diagonal-covariance F9 GMM, identical fitted scaled representation | Adjusted Rand Index **+0.3117** |
-| GMM mean maximum responsibility / mean entropy | **0.9955** / **0.0175 nats** |
+| GMM mean maximum responsibility / mean entropy | **0.9955** / **0.0120 nats** |
 
 Interpretation:
 

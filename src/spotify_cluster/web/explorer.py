@@ -556,6 +556,7 @@ JS = r"""
       }
       if (state.view === 'constellation' && constellation) {
         constellation.setVisibleClusters(Array.from(state.clusters));
+        updateControls();
         if (status) status.textContent = '';
         return;
       }

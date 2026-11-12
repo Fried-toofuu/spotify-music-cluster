@@ -85,9 +85,18 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[api,web,dev]"
 ```
 
-The trusted model bundle is expected at `artifacts/deployment-v1`. Prepare the
-visualization and research artifacts from the authorized local CSV (new-only
-outputs; the raw CSV and all artifacts stay gitignored):
+The trusted model bundle is expected at `artifacts/deployment-v1`. It is not
+rebuilt by this application. A separately authorized new deployment refit uses
+`scripts/export_model.py` with a new output directory; existing artifacts are
+never overwritten:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/export_model.py --dataset dataset.csv `
+  --output artifacts/deployment-v2 --profile deployment-v1
+```
+
+Prepare the visualization and research artifacts from the authorized local CSV
+(new-only outputs; the raw CSV and all artifacts stay gitignored):
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/prepare_visualization.py `

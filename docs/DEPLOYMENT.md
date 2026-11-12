@@ -34,8 +34,12 @@ per-track coordinates are not distributed without separate approval.
 - Non-root UID 10001, read-only root filesystem, `no-new-privileges`, all Linux
   capabilities dropped, `/tmp` tmpfs.
 - API and web are separate compose services; the API is not published to the
-  host. Only the web port (7860) is published; terminate TLS and apply access
-  controls at a reverse proxy.
+  host. Only the web port is published, bound to `127.0.0.1` by default;
+  terminate TLS and apply access controls at a reverse proxy. The API sets
+  `SPOTIFY_PUBLIC_MODE=1`, which refuses a per-track visualization artifact.
+- Gradio's `/gradio_api/upload` route is blocked at the proxy example; the app
+  has no file input and `max_file_size=1`, but edge blocking removes the unused
+  upload surface.
 - Health: the API readiness endpoint is `/api/v1/health`; the web healthcheck
   requests `/`. The web service waits for the API health before starting.
 - One API worker: the trusted model is loaded once per worker in the FastAPI
@@ -48,8 +52,9 @@ docker compose up -d
 curl http://127.0.0.1:7860/
 ```
 
-The image contains the built `constellation.js` and its third-party license
-notice. The Plotly.js browser asset is served from the installed `plotly`
+The image sets `SPOTIFY_PUBLIC_MODE=1` in compose and mounts only the aggregate
+visualization. The image contains the built `constellation.js` and its
+third-party license notice. The Plotly.js browser asset is served from the installed `plotly`
 package; both are pinned by `constraints.txt`.
 
 **Verification status:** the Docker CLI is not installed in the development

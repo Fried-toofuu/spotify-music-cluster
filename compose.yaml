@@ -26,6 +26,7 @@ services:
       - "1"
     environment:
       SPOTIFY_MODEL_DIR: /artifacts/deployment-v1
+      SPOTIFY_PUBLIC_MODE: "1"
       SPOTIFY_VISUALIZATION_DIR: /artifacts/visualization-public-v1
       SPOTIFY_RESEARCH_DIR: /artifacts/research-v1
     volumes:
@@ -65,7 +66,7 @@ services:
       HF_HOME: /tmp/hf
       GRADIO_TEMP_DIR: /tmp/gradio
     ports:
-      - "7860:7860"
+      - "127.0.0.1:7860:7860"
     depends_on:
       api:
         condition: service_healthy

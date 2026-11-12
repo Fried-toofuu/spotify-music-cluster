@@ -402,6 +402,10 @@ def create_app(client=None):
             research_plot,
             research_comparison_plot,
             archived_table,
+            prediction_status,
+            prediction,
+            distance_plot,
+            distance_table,
         ]
         app.load(
             handlers.refresh,
@@ -457,7 +461,7 @@ def create_app(client=None):
             js=_scroll_result_on_submit(),
         )
         example.click(
-            handlers.example,
+            handlers.load_example,
             outputs=[
                 acousticness,
                 danceability,
@@ -468,6 +472,10 @@ def create_app(client=None):
                 speechiness,
                 instrumentalness,
                 liveness,
+                prediction_status,
+                prediction,
+                distance_plot,
+                distance_table,
             ],
             api_visibility="private",
         )

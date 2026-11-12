@@ -144,21 +144,23 @@ measurements, not universal budgets.
 .\.venv\Scripts\python.exe -m build
 ```
 
-The repeatable live check is:
+The repeatable aggregate-mode live check is:
 
 ```powershell
 .\.venv\Scripts\python.exe plans/20261112-acoustic-observatory/verify-live.py
 .\.venv\Scripts\python.exe -m pytest -q tests/test_web_integration.py --run-real-web
 ```
 
-It starts owned API/web processes on 8010/7871 in aggregate mode, checks all
-three viewports, keyboard focus, reduced motion and the prediction flow, writes
+It starts owned API/web processes on 8010/7871 with `SPOTIFY_PUBLIC_MODE=1`,
+checks all four tabs, aggregate density, profile updates, prediction success and
+stale clearing, keyboard tab order, focus outline, reduced motion and the
+1440/768/375 viewports, writes
 `plans/20261112-acoustic-observatory/reports/browser.json`, and stops both
-processes. Browser verification used Playwright 1.65.1 with Chromium against the live API
-and Gradio services. It checked all four tabs, point selection and neighbors,
-cluster filtering, 3D/density/constellation rendering, prediction success and
-stale clearing, invalid input, keyboard tab order, focus outline, reduced motion,
-and the 1440/768/375 viewports. Screenshots in `docs/screenshots/` were captured
+processes. The private points mode, Plotly 3D, point selection and neighbors,
+Three.js constellation and the WebGL-disabled SVG fallback were exercised in
+Chromium against the private artifact during the upgrade; the committed script
+deliberately mounts only the public aggregate artifact so private coordinates
+never enter committed evidence. Screenshots in `docs/screenshots/` were captured
 from the real aggregate-mode application; they are not mockups.
 
 ## Privacy and local file serving

@@ -21,6 +21,11 @@ server {
     client_max_body_size 2m;
     limit_conn obs_conn 20;
 
+    # No file input exists in this app; block Gradio's upload route at the edge.
+    location /gradio_api/upload {
+        return 403;
+    }
+
     # Gradio queue join is the event-submission path. Verify the exact route
     # names against the installed Gradio version before relying on this limit.
     location /gradio_api/queue/join {

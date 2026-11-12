@@ -1,11 +1,13 @@
 """Artifact-serving endpoints with deterministic software fixtures."""
 
 import copy
+import json
 
 import pytest
 from fastapi.testclient import TestClient
 
 from spotify_cluster.api.app import create_app
+from spotify_cluster.data import sha256_file
 from spotify_cluster.research import build_comparison, save_comparison
 from spotify_cluster.visualization import build_visualization, save_visualization
 
@@ -34,6 +36,28 @@ def _prepare(tmp_path, pipeline, matrix, bundle_parts, mode="points"):
     research_payload, research_checks = build_comparison(pipeline, metadata, matrix)
     save_comparison(tmp_path / "research", research_payload, research_checks)
     return metadata
+
+
+def _remove_field(directory, field):
+    path = directory / "visualization.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data.pop(field)
+    path.write_text(json.dumps(data, indent=1) + chr(10), encoding="utf-8")
+    report_path = directory / "verification_report.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report["checksums"]["visualization.json"] = sha256_file(path)
+    report_path.write_text(json.dumps(report, indent=2) + chr(10), encoding="utf-8")
+
+
+def _remove_research_field(directory, field):
+    path = directory / "comparison.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data.pop(field)
+    path.write_text(json.dumps(data, indent=2) + chr(10), encoding="utf-8")
+    report_path = directory / "verification_report.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report["checksums"]["comparison.json"] = sha256_file(path)
+    report_path.write_text(json.dumps(report, indent=2) + chr(10), encoding="utf-8")
 
 
 def _client(software_service, tmp_path, metadata, mode="points", *, research=True):
@@ -208,5 +232,43 @@ def test_unavailable_artifact_skips_without_dataset_identity(
     app = create_app(tmp_path, service_factory=lambda _: software_service)
     with TestClient(app) as client:
         response = client.get(f"/api/v1/{path}")
+        assert response.status_code == 200
+        assert response.json()["available"] is False
+
+
+def test_public_mode_refuses_points_artifact(
+    software_service, tmp_path, pipeline, matrix, bundle_parts, monkeypatch
+):
+    metadata = _prepare(tmp_path, pipeline, matrix, bundle_parts)
+    monkeypatch.setenv("SPOTIFY_PUBLIC_MODE", "1")
+    with _client(software_service, tmp_path, metadata) as client:
+        assert client.get("/api/v1/health").status_code == 200
+        meta = client.get("/api/v1/visualization/meta").json()
+        assert meta["available"] is False
+        assert "aggregate" in meta["reason"].lower()
+        assert client.get("/api/v1/visualization/points").status_code == 404
+
+
+def test_malformed_artifact_is_unavailable_not_500(
+    software_service, tmp_path, pipeline, matrix, bundle_parts
+):
+    metadata = _prepare(tmp_path, pipeline, matrix, bundle_parts)
+    _remove_field(tmp_path / "viz-points", "software")
+    with _client(software_service, tmp_path, metadata) as client:
+        assert client.get("/api/v1/health").status_code == 200
+        meta = client.get("/api/v1/visualization/meta")
+        assert meta.status_code == 200
+        assert meta.json()["available"] is False
+        assert client.get("/api/v1/visualization/points").status_code == 404
+
+
+def test_malformed_research_artifact_is_unavailable(
+    software_service, tmp_path, pipeline, matrix, bundle_parts
+):
+    metadata = _prepare(tmp_path, pipeline, matrix, bundle_parts)
+    _remove_research_field(tmp_path / "research", "software")
+    with _client(software_service, tmp_path, metadata) as client:
+        assert client.get("/api/v1/health").status_code == 200
+        response = client.get("/api/v1/research/comparison")
         assert response.status_code == 200
         assert response.json()["available"] is False

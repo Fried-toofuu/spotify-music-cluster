@@ -15,12 +15,78 @@ from fastapi.responses import JSONResponse
 from spotify_cluster.config import DEPLOYMENT_V1, F9
 from spotify_cluster.inference import InferenceService
 from spotify_cluster.research import load_comparison
-from spotify_cluster.visualization import load_visualization
+from spotify_cluster.visualization import (
+    load_visualization,
+    occupancy_view,
+    points_view,
+    public_meta,
+)
 
 from .routes import cluster_info, model_info, router
+from .schemas import (
+    OccupancyView,
+    PointsView,
+    ResearchComparison,
+    VisualizationMeta,
+)
 
 logger = logging.getLogger(__name__)
 _UNSET = object()
+_MAX_BODY_BYTES = 64 * 1024
+
+
+class BodyLimitMiddleware:
+    """Buffer and cap HTTP request bodies, including chunked requests."""
+
+    def __init__(self, app, max_bytes: int = _MAX_BODY_BYTES):
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        body = b""
+        more = True
+        while more:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                return
+            if message["type"] != "http.request":
+                continue
+            body += message.get("body", b"")
+            more = message.get("more_body", False)
+            if len(body) > self.max_bytes:
+                response = JSONResponse(
+                    status_code=413, content={"detail": "Request body too large"}
+                )
+                await response(scope, receive, send)
+                return
+        delivered = False
+
+        async def replay():
+            nonlocal delivered
+            if not delivered:
+                delivered = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            return {"type": "http.disconnect"}
+
+        await self.app(scope, replay, send)
+
+
+def _validated_visualization(payload: dict) -> dict:
+    """Validate the exact public view before an artifact can become available."""
+    VisualizationMeta(**{"available": True, **public_meta(payload)})
+    if payload.get("artifact_mode") == "points":
+        PointsView(**points_view(payload))
+    else:
+        OccupancyView(**occupancy_view(payload))
+    return payload
+
+
+def _validated_research(payload: dict) -> dict:
+    ResearchComparison(**{"available": True, **payload})
+    return payload
 
 
 def resolve_model_dir(model_dir: Path | None = None) -> Path:
@@ -125,14 +191,21 @@ def create_app(
                 "and integrity in server logs"
             ) from None
         application.state.inference_service = service
+        public_mode = os.environ.get("SPOTIFY_PUBLIC_MODE", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+        }
         if metadata.get("dataset_sha256") and metadata.get("prepared_fingerprint"):
             visualization, visualization_reason = _load_optional(
                 "Visualization",
-                lambda directory: load_visualization(
-                    directory,
-                    expected_model_id=metadata["model_id"],
-                    expected_dataset_sha256=metadata["dataset_sha256"],
-                    expected_fingerprint=metadata["prepared_fingerprint"],
+                lambda directory: _validated_visualization(
+                    load_visualization(
+                        directory,
+                        expected_model_id=metadata["model_id"],
+                        expected_dataset_sha256=metadata["dataset_sha256"],
+                        expected_fingerprint=metadata["prepared_fingerprint"],
+                    )
                 ),
                 visualization_dir,
                 "SPOTIFY_VISUALIZATION_DIR",
@@ -140,11 +213,13 @@ def create_app(
             )
             research, research_reason = _load_optional(
                 "Research comparison",
-                lambda directory: load_comparison(
-                    directory,
-                    expected_model_id=metadata["model_id"],
-                    expected_dataset_sha256=metadata["dataset_sha256"],
-                    expected_fingerprint=metadata["prepared_fingerprint"],
+                lambda directory: _validated_research(
+                    load_comparison(
+                        directory,
+                        expected_model_id=metadata["model_id"],
+                        expected_dataset_sha256=metadata["dataset_sha256"],
+                        expected_fingerprint=metadata["prepared_fingerprint"],
+                    )
                 ),
                 research_dir,
                 "SPOTIFY_RESEARCH_DIR",
@@ -153,6 +228,10 @@ def create_app(
         else:
             visualization, visualization_reason = None, "Visualization not applicable"
             research, research_reason = None, "Research comparison not applicable"
+        if public_mode and visualization and visualization["artifact_mode"] == "points":
+            logger.warning("Public mode refuses a per-track visualization artifact")
+            visualization = None
+            visualization_reason = "Public mode serves aggregate visualization only"
         application.state.visualization = visualization
         application.state.visualization_reason = (
             visualization_reason or "Visualization unavailable"
@@ -173,23 +252,7 @@ def create_app(
         debug=False,
     )
     application.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=6)
-
-    @application.middleware("http")
-    async def limit_request_body(request: Request, call_next):
-        length = request.headers.get("content-length")
-        if length is not None:
-            try:
-                size = int(length)
-            except ValueError:
-                return JSONResponse(
-                    status_code=413, content={"detail": "Invalid content length"}
-                )
-            if size > 64 * 1024:
-                return JSONResponse(
-                    status_code=413, content={"detail": "Request body too large"}
-                )
-        return await call_next(request)
-
+    application.add_middleware(BodyLimitMiddleware, max_bytes=_MAX_BODY_BYTES)
     application.include_router(router)
 
     @application.exception_handler(RequestValidationError)

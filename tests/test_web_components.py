@@ -7,11 +7,13 @@ from plotly.graph_objects import Figure
 
 from spotify_cluster.config import F9
 from spotify_cluster.web.components import (
+    SYNTHETIC_EXAMPLE,
     Handlers,
     insight,
     payload,
     prediction_card_html,
     preview_payload,
+    research_narrative_html,
     selection_html,
 )
 
@@ -56,11 +58,22 @@ def test_incomplete_payload():
 
 def test_refresh_returns_every_panel(web_client, web_responses):
     result = Handlers(web_client).refresh()
-    assert len(result) == 16
+    assert len(result) == 20
     state, brandbar, status, overview, note, facts, finding, population = result[:8]
-    identity, disclosure, explorer, detail, research, contrib, comparison, archived = (
-        result[8:]
-    )
+    (
+        identity,
+        disclosure,
+        explorer,
+        detail,
+        research,
+        contrib,
+        comparison,
+        archived,
+        prediction_status,
+        prediction,
+        distance_plot,
+        distance_table,
+    ) = result[8:]
     assert state["model"]["model_id"] == "software-fixture-only"
     assert "Live verified aggregates" in brandbar
     assert "API ready" in status and "loaded" in status
@@ -86,6 +99,12 @@ def test_refresh_returns_every_panel(web_client, web_responses):
         "Holdout Davies–Bouldin",
         "Holdout Calinski–Harabasz",
     }
+    assert "Submit features" in prediction_status
+    assert "Awaiting a feature vector" in prediction
+    assert distance_plot.layout.annotations[0].text == (
+        "Submit a feature vector to see distances."
+    )
+    assert list(distance_table.columns) == ["Cluster", "Distance"]
 
 
 def test_load_explorer_and_point_selection(web_client, web_responses):
@@ -194,3 +213,42 @@ def test_selection_html_escapes_and_uses_real_features(web_responses):
 def test_insight_follows_current_profiles(web_responses):
     assert "100.00%" in insight(web_responses["clusters"])
     assert "not available" in insight({}).lower()
+
+
+def test_missing_contributions_never_become_zero_evidence(web_responses):
+    profiles = web_responses["clusters"]
+    profiles.pop("feature_contributions")
+    html = research_narrative_html(
+        {"available": False, "reason": "not provisioned"}, profiles
+    )
+    assert "Separation diagnostic unavailable" in html
+    assert "drives 0.00%" not in html
+    assert "0 tracks" not in html
+
+
+def test_example_clears_stale_prediction(web_client):
+    result = Handlers(web_client).load_example()
+    assert len(result) == 13
+    assert result[:9] == tuple(SYNTHETIC_EXAMPLE)
+    assert "Submit features" in result[9]
+    assert "Awaiting a feature vector" in result[10]
+    assert result[11].layout.annotations[0].text == (
+        "Submit a feature vector to see distances."
+    )
+    assert list(result[12].columns) == ["Cluster", "Distance"]
+
+
+def test_offline_does_not_fabricate_research(api_track):
+    import httpx
+
+    from spotify_cluster.web.api_client import APIClient
+
+    def refuse(request):
+        raise httpx.ConnectError("PRIVATE", request=request)
+
+    result = Handlers(APIClient(transport=httpx.MockTransport(refuse))).refresh()
+    assert len(result) == 20
+    research_html = result[12]
+    assert "Research evidence unavailable" in research_html
+    assert "drives 0.00%" not in research_html
+    assert "0 tracks" not in research_html
