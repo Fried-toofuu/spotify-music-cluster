@@ -151,9 +151,12 @@ third-party license; the Plotly browser asset is served from the installed
 
 `Dockerfile` + `compose.yaml` prepare a non-root container pair with health
 checks, read-only mounts and the aggregate public visualization by default.
-`deploy/nginx.conf.example` sketches TLS and rate limiting. Actual public
-publication is **BLOCKED**: no hosting credentials, domain/TLS authority or
-per-track redistribution approval were available. No public URL is claimed.
+`deploy/nginx.conf.example` sketches TLS and rate limiting. `render.yaml` and
+`deploy/render/Dockerfile` deploy the same aggregate app to a Render free web
+service, downloading private artifacts from the Hugging Face dataset with an
+`HF_TOKEN` secret. Free Hugging Face Docker Spaces require a PRO subscription
+(HTTP 402 as of 2026-11-12). No public URL is claimed until an operator account
+is connected; per-track points mode requires separate redistribution approval.
 See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Repository boundaries

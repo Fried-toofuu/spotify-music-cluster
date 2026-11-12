@@ -108,14 +108,21 @@ therefore skipped by pip-audit.
 5. The historical final estimator remains gated and is not reconstructed by any
    deployment operation.
 
-## Hugging Face Spaces (free public demo)
+## Hugging Face Spaces
 
-A free Docker Space can run the same FastAPI + Gradio pair for a public demo.
-The model bundle and private verification sample are uploaded to a **private**
-Hugging Face Dataset; the public Space downloads them at startup using an
-`HF_TOKEN` Space secret. The default Space uses the aggregate artifact only and
-sets `SPOTIFY_PUBLIC_MODE=1`; no per-track coordinates are served. A points-mode
-deployment requires explicit redistribution approval and is not the default.
+A Docker Space can run the same FastAPI + Gradio pair for a public demo. The
+model bundle and private verification sample live in a **private** Hugging Face
+Dataset (`Khahn-nh/acoustic-observatory-artifacts`); the public Space downloads
+them at startup using an `HF_TOKEN` secret. The default Space uses the aggregate
+artifact only and sets `SPOTIFY_PUBLIC_MODE=1`; no per-track coordinates are
+served. A points-mode deployment requires explicit redistribution approval and
+is not the default.
+
+As of 2026-11-12, Hugging Face rejects Docker and Gradio Spaces on the free
+`cpu-basic` plan with HTTP 402: "Static Spaces are free for everyone, but
+hosting Gradio and Docker Spaces on free cpu-basic requires a PRO
+subscription." The private dataset was created successfully and remains usable
+by any host. With a PRO subscription:
 
 ```powershell
 # after: .\.venv\Scripts\python.exe -c "from huggingface_hub import login; login()"
@@ -123,14 +130,39 @@ deployment requires explicit redistribution approval and is not the default.
 ```
 
 The script creates the private dataset, the public Space, the Space secret and
-variables, and waits for the build. Free Spaces cold-start after inactivity and
-have no application-level authentication or rate limiting; treat this as a
-demo, not a production deployment.
+variables, and waits for the build. Read-only tokens are sufficient for the
+Space secret. Free Spaces cold-start after inactivity and have no
+application-level authentication or rate limiting; treat this as a demo, not a
+production deployment.
+
+## Render free web service
+
+`render.yaml` and `deploy/render/Dockerfile` run the aggregate public app on a
+Render free Docker web service. The container downloads the private artifacts
+from the Hugging Face dataset at startup using `HF_TOKEN`; the model bundle and
+verification sample never enter the Git repository, the image or the Render
+build logs. The shared `deploy/entrypoint.sh` forwards Render's `PORT` to Gradio
+and starts the API on the internal loopback port.
+
+Operator steps:
+
+1. Push this repository, then in the Render Dashboard choose **New → Blueprint**
+   and connect the repository. Render reads `render.yaml`.
+2. Enter `HF_TOKEN` when prompted (a read token for the private dataset).
+3. Apply the blueprint. Render probes `/` for health and assigns the public
+   HTTPS URL.
+
+Free-plan limits: 512 MB memory, one instance, spins down after 15 minutes of
+inactivity and takes roughly a minute to cold-start. There is no application
+authentication or rate limiting. `PUBLIC_MODE=1` (blueprint default) serves the
+aggregate artifact and disables 2D/3D per-track views; points mode requires
+explicit redistribution approval.
 
 ## Public deployment status
 
-**BLOCKED.** No hosting credentials, domain/TLS authority, paid infrastructure
-authorization or per-track redistribution approval was available for this
-implementation. No public URL is claimed. The local application and the
-aggregate-mode deployment configuration are complete; actual publication
-requires the separate authority boundaries to be satisfied.
+The local application, the aggregate-mode compose configuration, the Render
+blueprint and the Hugging Face Space package are complete. A public URL requires
+an operator account on the chosen platform and, for Hugging Face dynamic Spaces,
+a PRO subscription; this environment holds no hosting account, so no public URL
+is claimed. The default public configuration serves the aggregate artifact
+only; serving per-track points publicly requires separate authorization.

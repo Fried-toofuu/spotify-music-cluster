@@ -14,7 +14,7 @@ COPY pyproject.toml constraints.txt MANIFEST.in README.md ./
 COPY src ./src
 
 RUN python -m pip install --upgrade "pip>=26.2.2" \
-    && python -m pip install ".[api,web]" -c constraints.txt
+    && python -m pip install ".[api,web,deploy]" -c constraints.txt
 
 COPY entrypoint.sh ./entrypoint.sh
 RUN sed -i 's/\r$//' entrypoint.sh \

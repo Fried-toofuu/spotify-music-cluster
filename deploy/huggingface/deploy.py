@@ -67,8 +67,9 @@ def stage_space() -> Path:
     shutil.copytree(ROOT / "src", staging / "src", ignore=IGNORE)
     for name in ("pyproject.toml", "constraints.txt", "MANIFEST.in"):
         shutil.copy2(ROOT / name, staging / name)
-    for name in ("README.md", "Dockerfile", "entrypoint.sh"):
+    for name in ("README.md", "Dockerfile"):
         shutil.copy2(DEPLOY / name, staging / name)
+    shutil.copy2(ROOT / "deploy" / "entrypoint.sh", staging / "entrypoint.sh")
     return staging
 
 
