@@ -108,6 +108,25 @@ therefore skipped by pip-audit.
 5. The historical final estimator remains gated and is not reconstructed by any
    deployment operation.
 
+## Hugging Face Spaces (free public demo)
+
+A free Docker Space can run the same FastAPI + Gradio pair for a public demo.
+The model bundle and private verification sample are uploaded to a **private**
+Hugging Face Dataset; the public Space downloads them at startup using an
+`HF_TOKEN` Space secret. The default Space uses the aggregate artifact only and
+sets `SPOTIFY_PUBLIC_MODE=1`; no per-track coordinates are served. A points-mode
+deployment requires explicit redistribution approval and is not the default.
+
+```powershell
+# after: .\.venv\Scripts\python.exe -c "from huggingface_hub import login; login()"
+.\.venv\Scripts\python.exe deploy/huggingface/deploy.py --visualization-mode aggregate
+```
+
+The script creates the private dataset, the public Space, the Space secret and
+variables, and waits for the build. Free Spaces cold-start after inactivity and
+have no application-level authentication or rate limiting; treat this as a
+demo, not a production deployment.
+
 ## Public deployment status
 
 **BLOCKED.** No hosting credentials, domain/TLS authority, paid infrastructure
