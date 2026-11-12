@@ -1,0 +1,59 @@
+[
+  {
+    "viewport": "375x812",
+    "screenshot": "D:\\spotify_music_cluster\\plans\\20261112-gradio-web\\reports\\render-check\\375x812.png",
+    "outline": [
+      "gradio-app \"Spotify Music Clustering Explore acousti\" @ x0 y0 375x1758",
+      "  div.gradio-container.gradio-container-6-31-0 \"Spotify Music  @ x0 y0 375x1758",
+      "    div.main.fillable \"Spotify Music Clustering Explore acousti\" @ x24 y24 327x1710",
+      "      div.wrap.svelte-zxu34v \"Spotify Music Clustering Explore aco @ x24 y24 327x1710"
+    ],
+    "findings": [
+      {
+        "severity": "warn",
+        "type": "clipped-text",
+        "target": "div.sr-only \"Loading\"",
+        "message": "text is cut off by overflow without an ellipsis or line clamp"
+      }
+    ],
+    "height": 1758
+  },
+  {
+    "viewport": "768x1024",
+    "screenshot": "D:\\spotify_music_cluster\\plans\\20261112-gradio-web\\reports\\render-check\\768x1024.png",
+    "outline": [
+      "gradio-app \"Spotify Music Clustering Explore acousti\" @ x0 y0 768x1379",
+      "  div.gradio-container.gradio-container-6-31-0 \"Spotify Music  @ x0 y0 768x1379",
+      "    div.main.fillable \"Spotify Music Clustering Explore acousti\" @ x24 y24 720x1331",
+      "      div.wrap.svelte-zxu34v \"Spotify Music Clustering Explore aco @ x24 y24 720x1331"
+    ],
+    "findings": [
+      {
+        "severity": "warn",
+        "type": "clipped-text",
+        "target": "div.sr-only \"Loading\"",
+        "message": "text is cut off by overflow without an ellipsis or line clamp"
+      }
+    ],
+    "height": 1379
+  },
+  {
+    "viewport": "1440x900",
+    "screenshot": "D:\\spotify_music_cluster\\plans\\20261112-gradio-web\\reports\\render-check\\1440x900.png",
+    "outline": [
+      "gradio-app \"Spotify Music Clustering Explore acousti\" @ x0 y0 1440x1243",
+      "  div.gradio-container.gradio-container-6-31-0 \"Spotify Music  @ x120 y0 1200x1243",
+      "    div.main.fillable \"Spotify Music Clustering Explore acousti\" @ x144 y24 1152x1195",
+      "      div.wrap.svelte-zxu34v \"Spotify Music Clustering Explore aco @ x144 y24 1152x1195"
+    ],
+    "findings": [
+      {
+        "severity": "warn",
+        "type": "clipped-text",
+        "target": "div.sr-only \"Loading\"",
+        "message": "text is cut off by overflow without an ellipsis or line clamp"
+      }
+    ],
+    "height": 1243
+  }
+]

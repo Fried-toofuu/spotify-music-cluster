@@ -1,0 +1,6 @@
+include .python-version AGENTS.md
+recursive-include docs *.md
+recursive-include scripts *.py
+recursive-include tests *.py
+global-exclude *.csv *.ipynb *.joblib .env*
+global-exclude verification_sample*.json

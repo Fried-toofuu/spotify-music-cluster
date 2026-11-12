@@ -1,0 +1,8 @@
+{
+  "artifacts\\deployment-v1\\cluster_profiles.json": "90346684cab0a7b6ee5b1b52a0f8c6d5b58f83bfa741e4b3866b17c4c57b924e",
+  "artifacts\\deployment-v1\\metadata.json": "39e64e022708e18cc08b8b857d5653e22f8f5ec36395783f84d26e5a48c4ba17",
+  "artifacts\\deployment-v1\\model_bundle.joblib": "9c23058262845f3efa2ac2acaf277a9e66ea90066561c893ab6844b586946435",
+  "artifacts\\deployment-v1\\verification_report.json": "3874e879e973880288d8d7ef97b587bda27caa0469a09df10b807b07d277a6fd",
+  "artifacts\\deployment-v1\\verification_sample.json": "5345b8f1b35e4f2b50bb87796e116a4a2e0fec5c0f5758a1e4f3faa7be86a4e9",
+  "Spotify_Music_Clustering_Final.ipynb": "76a31ac55e385238761d7decbc5117cede6f1ad8a2c9285504e80c4a2526b178"
+}

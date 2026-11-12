@@ -1,0 +1,13 @@
+usage: export_model.py [-h] --dataset DATASET --output OUTPUT
+                       [--profile {deployment-v1,historical-final-refit}]
+
+Export an explicitly approved deployment recipe; historical identity stays
+gated.
+
+options:
+  -h, --help            show this help message and exit
+  --dataset DATASET
+  --output OUTPUT
+  --profile {deployment-v1,historical-final-refit}
+                        Select deployment-v1 explicitly; omission retains the
+                        historical gate

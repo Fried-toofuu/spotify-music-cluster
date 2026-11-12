@@ -1,0 +1,27 @@
+render-check: http://127.0.0.1:7860
+
+[375x812] page height 1758px, screenshot D:\spotify_music_cluster\plans\20261112-gradio-web\reports\render-check\375x812.png
+  outline:
+    gradio-app "Spotify Music Clustering Explore acousti" @ x0 y0 375x1758
+      div.gradio-container.gradio-container-6-31-0 "Spotify Music  @ x0 y0 375x1758
+        div.main.fillable "Spotify Music Clustering Explore acousti" @ x24 y24 327x1710
+          div.wrap.svelte-zxu34v "Spotify Music Clustering Explore aco @ x24 y24 327x1710
+  WARN  clipped-text: div.sr-only "Loading" - text is cut off by overflow without an ellipsis or line clamp
+
+[768x1024] page height 1379px, screenshot D:\spotify_music_cluster\plans\20261112-gradio-web\reports\render-check\768x1024.png
+  outline:
+    gradio-app "Spotify Music Clustering Explore acousti" @ x0 y0 768x1379
+      div.gradio-container.gradio-container-6-31-0 "Spotify Music  @ x0 y0 768x1379
+        div.main.fillable "Spotify Music Clustering Explore acousti" @ x24 y24 720x1331
+          div.wrap.svelte-zxu34v "Spotify Music Clustering Explore aco @ x24 y24 720x1331
+  WARN  clipped-text: div.sr-only "Loading" - text is cut off by overflow without an ellipsis or line clamp
+
+[1440x900] page height 1243px, screenshot D:\spotify_music_cluster\plans\20261112-gradio-web\reports\render-check\1440x900.png
+  outline:
+    gradio-app "Spotify Music Clustering Explore acousti" @ x0 y0 1440x1243
+      div.gradio-container.gradio-container-6-31-0 "Spotify Music  @ x120 y0 1200x1243
+        div.main.fillable "Spotify Music Clustering Explore acousti" @ x144 y24 1152x1195
+          div.wrap.svelte-zxu34v "Spotify Music Clustering Explore aco @ x144 y24 1152x1195
+  WARN  clipped-text: div.sr-only "Loading" - text is cut off by overflow without an ellipsis or line clamp
+
+Summary: 0 errors, 3 warnings. Fix errors first, re-run, then review the screenshots.

@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "worktree": "D:\\spotify_music_cluster",
+  "processes": [
+    {
+      "name": "backend",
+      "pid": 10568,
+      "port": 8000,
+      "command": "D:\\spotify_music_cluster\\.venv\\Scripts\\python.exe -u D:\\spotify_music_cluster\\plans\\20261112-fastapi-backend\\verify-http.py --serve"
+    },
+    {
+      "name": "frontend",
+      "pid": 30380,
+      "port": 7860,
+      "command": "D:\\spotify_music_cluster\\.venv\\Scripts\\python.exe -u D:\\spotify_music_cluster\\plans\\20261112-gradio-web\\verify-http.py --serve-web"
+    }
+  ],
+  "model_id": "spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363",
+  "training_count": 89741,
+  "cluster_counts": [
+    72211,
+    17530
+  ],
+  "private_sample_agreement": true,
+  "gradio_http_prediction": true,
+  "browser": {
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        768,
+        1024
+      ],
+      [
+        375,
+        812
+      ]
+    ],
+    "screenshots": [
+      "1440-overview.png",
+      "1440-predict-cluster.png",
+      "1440-cluster-explorer.png",
+      "1440-research-methodology.png",
+      "768-overview.png",
+      "768-predict-cluster.png",
+      "768-cluster-explorer.png",
+      "768-research-methodology.png",
+      "375-overview.png",
+      "375-predict-cluster.png",
+      "375-cluster-explorer.png",
+      "375-research-methodology.png"
+    ],
+    "errors": []
+  },
+  "render_check_exit": 0,
+  "offline_feedback": true,
+  "exit_codes": [
+    0,
+    0
+  ],
+  "ports_released": {
+    "8000": true,
+    "7860": true
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "environment": {
+    "python": "3.12.10",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "scipy": "1.15.3",
+    "scikit_learn": "1.6.1",
+    "joblib": "1.5.1",
+    "threadpoolctl": "3.6.0"
+  },
+  "development_tools": {
+    "pip": "26.3",
+    "pytest": "9.0.3",
+    "ruff": "0.14.4",
+    "build": "1.3.0",
+    "pip-audit": "2.10.1"
+  },
+  "notebook_sha256": "76a31ac55e385238761d7decbc5117cede6f1ad8a2c9285504e80c4a2526b178",
+  "notebook_cells": 117,
+  "dataset": {
+    "dataset_sha256": "b202fa49909b2d5cef71a04b1d21243cfeb36414535f2ca9272aa646721177bd",
+    "raw_rows": 114000,
+    "training_sample_count": 89741,
+    "distinct_genres": 114,
+    "preparation_version": "notebook-track-f9-v1",
+    "prepared_fingerprint": "35cd173326261791b7c48689176af25a92604d2d543824269059d0816237f407"
+  },
+  "matrix_shape": [
+    89741,
+    9
+  ],
+  "features": [
+    "acousticness",
+    "danceability",
+    "energy",
+    "valence",
+    "tempo",
+    "loudness",
+    "speechiness",
+    "instrumentalness",
+    "liveness"
+  ],
+  "production_export": "BLOCKED",
+  "pytest_output": "........................................................                 [100%]\n56 passed in 6.01s\n",
+  "wheel_contents": [
+    "spotify_cluster/__init__.py",
+    "spotify_cluster/config.py",
+    "spotify_cluster/data.py",
+    "spotify_cluster/inference.py",
+    "spotify_cluster/model_store.py",
+    "spotify_cluster/training.py",
+    "spotify_music_clustering_web-0.1.0.dist-info/METADATA",
+    "spotify_music_clustering_web-0.1.0.dist-info/WHEEL",
+    "spotify_music_clustering_web-0.1.0.dist-info/top_level.txt",
+    "spotify_music_clustering_web-0.1.0.dist-info/RECORD"
+  ],
+  "sdist_contents": [
+    "spotify_music_clustering_web-0.1.0",
+    "spotify_music_clustering_web-0.1.0/.python-version",
+    "spotify_music_clustering_web-0.1.0/AGENTS.md",
+    "spotify_music_clustering_web-0.1.0/MANIFEST.in",
+    "spotify_music_clustering_web-0.1.0/PKG-INFO",
+    "spotify_music_clustering_web-0.1.0/README.md",
+    "spotify_music_clustering_web-0.1.0/docs",
+    "spotify_music_clustering_web-0.1.0/docs/ARCHITECTURE.md",
+    "spotify_music_clustering_web-0.1.0/docs/MODEL_SERVING.md",
+    "spotify_music_clustering_web-0.1.0/docs/NOTEBOOK_AUDIT.md",
+    "spotify_music_clustering_web-0.1.0/pyproject.toml",
+    "spotify_music_clustering_web-0.1.0/scripts",
+    "spotify_music_clustering_web-0.1.0/scripts/export_model.py",
+    "spotify_music_clustering_web-0.1.0/setup.cfg",
+    "spotify_music_clustering_web-0.1.0/src",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/__init__.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/config.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/data.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/inference.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/model_store.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/training.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/PKG-INFO",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/SOURCES.txt",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/dependency_links.txt",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/requires.txt",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/top_level.txt",
+    "spotify_music_clustering_web-0.1.0/tests",
+    "spotify_music_clustering_web-0.1.0/tests/conftest.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_cli.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_data.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_inference.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_model_store.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_training.py"
+  ],
+  "packages": {
+    "spotify_music_clustering_web-0.1.0-py3-none-any.whl": {
+      "bytes": 12462,
+      "sha256": "0a7f24ea3f1bf19d5ebdbd2f501b472e5c3fca65e24dd6792fa2dec65c0946d4"
+    },
+    "spotify_music_clustering_web-0.1.0.tar.gz": {
+      "bytes": 21275,
+      "sha256": "1b07f25f3c7c1c963abe19136ed0273768181585d9356a36218caaa47f59e982"
+    }
+  },
+  "fresh_wheel_smoke": {
+    "import_path": "D:\\spotify_music_cluster\\.venv-wheel\\Lib\\site-packages\\spotify_cluster\\__init__.py",
+    "fixture_only": true,
+    "single_batch_roundtrip": "PASS"
+  },
+  "verified_local_links": [
+    "README.md: docs/NOTEBOOK_AUDIT.md",
+    "README.md: pyproject.toml",
+    "README.md: src/spotify_cluster/config.py",
+    "README.md: docs/ARCHITECTURE.md",
+    "README.md: docs/MODEL_SERVING.md",
+    "README.md: docs/NOTEBOOK_AUDIT.md",
+    "README.md: plans/20261112-spotify-foundation/reports/verification.md",
+    "AGENTS.md: README.md",
+    "AGENTS.md: docs/ARCHITECTURE.md",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/config.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/data.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/training.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/model_store.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/inference.py",
+    "docs\\ARCHITECTURE.md: ../scripts/export_model.py",
+    "docs\\MODEL_SERVING.md: ../src/spotify_cluster/model_store.py"
+  ]
+}

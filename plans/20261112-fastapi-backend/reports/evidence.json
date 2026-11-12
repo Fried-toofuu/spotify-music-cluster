@@ -1,0 +1,84 @@
+{
+  "tools": {
+    "fastapi": "0.162.5",
+    "pydantic": "2.14.3",
+    "uvicorn": "0.54.0",
+    "starlette": "1.10.0",
+    "httpx": "0.28.1",
+    "pytest": "9.0.3",
+    "ruff": "0.14.4",
+    "build": "1.3.0"
+  },
+  "checks": {
+    "pytest": ".....................s.................................................. [ 57%]\n..............................................ssss....                   [100%]\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\fastapi\\testclient.py:1\n  D:\\spotify_music_cluster\\.venv\\Lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n121 passed, 5 skipped, 1 warning in 8.07s",
+    "pytest-real-api": "..                                                                       [100%]\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\fastapi\\testclient.py:1\n  D:\\spotify_music_cluster\\.venv\\Lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 1 warning in 1.54s",
+    "ruff-check": "All checks passed!",
+    "ruff-format": "32 files already formatted",
+    "build": "* Creating isolated environment: venv+pip...\n* Installing packages in isolated environment:\n  - setuptools>=75\n  - wheel\n* Getting build dependencies for sdist...\nrunning egg_info\nwriting src\\spotify_music_clustering_web.egg-info\\PKG-INFO\nwriting dependency_links to src\\spotify_music_clustering_web.egg-info\\dependency_links.txt\nwriting requirements to src\\spotify_music_clustering_web.egg-info\\requires.txt\nwriting top-level names to src\\spotify_music_clustering_web.egg-info\\top_level.txt\nreading manifest file 'src\\spotify_music_clustering_web.egg-info\\SOURCES.txt'\nreading manifest template 'MANIFEST.in'\nwriting manifest file 'src\\spotify_music_clustering_web.egg-info\\SOURCES.txt'\n* Building sdist...\nrunning sdist\nrunning egg_info\nwriting src\\spotify_music_clustering_web.egg-info\\PKG-INFO\nwriting dependency_links to src\\spotify_music_clustering_web.egg-info\\dependency_links.txt\nwriting requirements to src\\spotify_music_clustering_web.egg-info\\requires.txt\nwriting top-level names to src\\spotify_music_clustering_web.egg-info\\top_level.txt\nreading manifest file 'src\\spotify_music_clustering_web.egg-info\\SOURCES.txt'\nreading manifest template 'MANIFEST.in'\nwriting manifest file 'src\\spotify_music_clustering_web.egg-info\\SOURCES.txt'\nrunning check\ncreating spotify_music_clustering_web-0.1.0\ncreating spotify_music_clustering_web-0.1.0\\docs\ncreating spotify_music_clustering_web-0.1.0\\scripts\ncreating spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\ncreating spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\\api\ncreating spotify_music_clustering_web-0.1.0\\src\\spotify_music_clustering_web.egg-info\ncreating spotify_music_clustering_web-0.1.0\\tests\ncopying files to spotify_music_clustering_web-0.1.0...\ncopying .python-version -> spotify_music_clustering_web-0.1.0\ncopying AGENTS.md -> spotify_music_clustering_web-0.1.0\ncopying MANIFEST.in -> spotify_music_clustering_web-0.1.0\ncopying README.md -> spotify_music_clustering_web-0.1.0\ncopying pyproject.toml -> spotify_music_clustering_web-0.1.0\ncopying docs\\API.md -> spotify_music_clustering_web-0.1.0\\docs\ncopying docs\\ARCHITECTURE.md -> spotify_music_clustering_web-0.1.0\\docs\ncopying docs\\MODEL_SERVING.md -> spotify_music_clustering_web-0.1.0\\docs\ncopying docs\\NOTEBOOK_AUDIT.md -> spotify_music_clustering_web-0.1.0\\docs\ncopying scripts\\export_model.py -> spotify_music_clustering_web-0.1.0\\scripts\ncopying src\\spotify_cluster\\__init__.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\ncopying src\\spotify_cluster\\config.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\ncopying src\\spotify_cluster\\data.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\ncopying src\\spotify_cluster\\inference.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\ncopying src\\spotify_cluster\\model_store.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\ncopying src\\spotify_cluster\\training.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\ncopying src\\spotify_cluster\\verification.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\ncopying src\\spotify_cluster\\api\\__init__.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\app.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\dependencies.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\routes.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\schemas.py -> spotify_music_clustering_web-0.1.0\\src\\spotify_cluster\\api\ncopying src\\spotify_music_clustering_web.egg-info\\PKG-INFO -> spotify_music_clustering_web-0.1.0\\src\\spotify_music_clustering_web.egg-info\ncopying src\\spotify_music_clustering_web.egg-info\\SOURCES.txt -> spotify_music_clustering_web-0.1.0\\src\\spotify_music_clustering_web.egg-info\ncopying src\\spotify_music_clustering_web.egg-info\\dependency_links.txt -> spotify_music_clustering_web-0.1.0\\src\\spotify_music_clustering_web.egg-info\ncopying src\\spotify_music_clustering_web.egg-info\\requires.txt -> spotify_music_clustering_web-0.1.0\\src\\spotify_music_clustering_web.egg-info\ncopying src\\spotify_music_clustering_web.egg-info\\top_level.txt -> spotify_music_clustering_web-0.1.0\\src\\spotify_music_clustering_web.egg-info\ncopying tests\\api_fixtures.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\conftest.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_api_health.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_api_predict.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_api_real_model.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_api_validation.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_cli.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_data.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_deployment.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_inference.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_model_store.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_real_model.py -> spotify_music_clustering_web-0.1.0\\tests\ncopying tests\\test_training.py -> spotify_music_clustering_web-0.1.0\\tests\nWriting spotify_music_clustering_web-0.1.0\\setup.cfg\nCreating tar archive\nremoving 'spotify_music_clustering_web-0.1.0' (and everything under it)\n* Building wheel from sdist\n* Creating isolated environment: venv+pip...\n* Installing packages in isolated environment:\n  - setuptools>=75\n  - wheel\n* Getting build dependencies for wheel...\nrunning egg_info\nwriting src\\spotify_music_clustering_web.egg-info\\PKG-INFO\nwriting dependency_links to src\\spotify_music_clustering_web.egg-info\\dependency_links.txt\nwriting requirements to src\\spotify_music_clustering_web.egg-info\\requires.txt\nwriting top-level names to src\\spotify_music_clustering_web.egg-info\\top_level.txt\nreading manifest file 'src\\spotify_music_clustering_web.egg-info\\SOURCES.txt'\nreading manifest template 'MANIFEST.in'\nwriting manifest file 'src\\spotify_music_clustering_web.egg-info\\SOURCES.txt'\n* Building wheel...\nrunning bdist_wheel\nrunning build\nrunning build_py\ncreating build\\lib\\spotify_cluster\ncopying src\\spotify_cluster\\config.py -> build\\lib\\spotify_cluster\ncopying src\\spotify_cluster\\data.py -> build\\lib\\spotify_cluster\ncopying src\\spotify_cluster\\inference.py -> build\\lib\\spotify_cluster\ncopying src\\spotify_cluster\\model_store.py -> build\\lib\\spotify_cluster\ncopying src\\spotify_cluster\\training.py -> build\\lib\\spotify_cluster\ncopying src\\spotify_cluster\\verification.py -> build\\lib\\spotify_cluster\ncopying src\\spotify_cluster\\__init__.py -> build\\lib\\spotify_cluster\ncreating build\\lib\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\app.py -> build\\lib\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\dependencies.py -> build\\lib\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\routes.py -> build\\lib\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\schemas.py -> build\\lib\\spotify_cluster\\api\ncopying src\\spotify_cluster\\api\\__init__.py -> build\\lib\\spotify_cluster\\api\nrunning egg_info\nwriting src\\spotify_music_clustering_web.egg-info\\PKG-INFO\nwriting dependency_links to src\\spotify_music_clustering_web.egg-info\\dependency_links.txt\nwriting requirements to src\\spotify_music_clustering_web.egg-info\\requires.txt\nwriting top-level names to src\\spotify_music_clustering_web.egg-info\\top_level.txt\nreading manifest file 'src\\spotify_music_clustering_web.egg-info\\SOURCES.txt'\nreading manifest template 'MANIFEST.in'\nwriting manifest file 'src\\spotify_music_clustering_web.egg-info\\SOURCES.txt'\ninstalling to build\\bdist.win-amd64\\wheel\nrunning install\nrunning install_lib\ncreating build\\bdist.win-amd64\\wheel\ncreating build\\bdist.win-amd64\\wheel\\spotify_cluster\ncreating build\\bdist.win-amd64\\wheel\\spotify_cluster\\api\ncopying build\\lib\\spotify_cluster\\api\\app.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\\api\ncopying build\\lib\\spotify_cluster\\api\\dependencies.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\\api\ncopying build\\lib\\spotify_cluster\\api\\routes.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\\api\ncopying build\\lib\\spotify_cluster\\api\\schemas.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\\api\ncopying build\\lib\\spotify_cluster\\api\\__init__.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\\api\ncopying build\\lib\\spotify_cluster\\config.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\ncopying build\\lib\\spotify_cluster\\data.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\ncopying build\\lib\\spotify_cluster\\inference.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\ncopying build\\lib\\spotify_cluster\\model_store.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\ncopying build\\lib\\spotify_cluster\\training.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\ncopying build\\lib\\spotify_cluster\\verification.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\ncopying build\\lib\\spotify_cluster\\__init__.py -> build\\bdist.win-amd64\\wheel\\.\\spotify_cluster\nrunning install_egg_info\nCopying src\\spotify_music_clustering_web.egg-info to build\\bdist.win-amd64\\wheel\\.\\spotify_music_clustering_web-0.1.0-py3.12.egg-info\nrunning install_scripts\ncreating build\\bdist.win-amd64\\wheel\\spotify_music_clustering_web-0.1.0.dist-info\\WHEEL\ncreating 'D:\\\\spotify_music_cluster\\\\dist\\\\.tmp-ogv61cct\\\\spotify_music_clustering_web-0.1.0-py3-none-any.whl' and adding 'build\\\\bdist.win-amd64\\\\wheel' to it\nadding 'spotify_cluster/__init__.py'\nadding 'spotify_cluster/config.py'\nadding 'spotify_cluster/data.py'\nadding 'spotify_cluster/inference.py'\nadding 'spotify_cluster/model_store.py'\nadding 'spotify_cluster/training.py'\nadding 'spotify_cluster/verification.py'\nadding 'spotify_cluster/api/__init__.py'\nadding 'spotify_cluster/api/app.py'\nadding 'spotify_cluster/api/dependencies.py'\nadding 'spotify_cluster/api/routes.py'\nadding 'spotify_cluster/api/schemas.py'\nadding 'spotify_music_clustering_web-0.1.0.dist-info/METADATA'\nadding 'spotify_music_clustering_web-0.1.0.dist-info/WHEEL'\nadding 'spotify_music_clustering_web-0.1.0.dist-info/top_level.txt'\nadding 'spotify_music_clustering_web-0.1.0.dist-info/RECORD'\nremoving build\\bdist.win-amd64\\wheel\nSuccessfully built spotify_music_clustering_web-0.1.0.tar.gz and spotify_music_clustering_web-0.1.0-py3-none-any.whl",
+    "http-smoke": "{\n  \"status\": \"PASS\",\n  \"port\": 8000,\n  \"worktree\": \"D:\\\\spotify_music_cluster\",\n  \"statuses\": {\n    \"health\": 200,\n    \"model\": 200,\n    \"clusters\": 200,\n    \"swagger\": 200,\n    \"openapi\": 200,\n    \"single\": 200,\n    \"batch\": 200,\n    \"invalid\": 422\n  },\n  \"pid\": 30520,\n  \"command\": \"python plans/20261112-fastapi-backend/verify-http.py --serve\",\n  \"startup_seconds\": 1.0310000000008586,\n  \"model_id\": \"spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363\",\n  \"verified_records\": 32,\n  \"prediction_counts\": {\n    \"0\": 25,\n    \"1\": 7\n  },\n  \"single_result\": {\n    \"cluster_id\": 0,\n    \"distances\": [\n      2.7783335136536538,\n      8.888969568042624\n    ]\n  },\n  \"max_distance_absolute_error\": 0.0,\n  \"server_exit_code\": 0,\n  \"port_released\": true\n}",
+    "pip-check": "No broken requirements found."
+  },
+  "wheel_api_modules": [
+    "spotify_cluster/api/__init__.py",
+    "spotify_cluster/api/app.py",
+    "spotify_cluster/api/dependencies.py",
+    "spotify_cluster/api/routes.py",
+    "spotify_cluster/api/schemas.py"
+  ],
+  "private_distribution_exclusion": "PASS",
+  "installed_wheel": {
+    "status": "PASS",
+    "installed_from": "site-packages",
+    "model_id": "spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363",
+    "verified_records": 32,
+    "no_training_or_dataset_access": true,
+    "wheel_requires_explicit_model_dir": true
+  },
+  "protected_files_unchanged": true,
+  "model": {
+    "model_id": "spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363",
+    "artifact_sha256": "9c23058262845f3efa2ac2acaf277a9e66ea90066561c893ab6844b586946435",
+    "cluster_counts": [
+      72211,
+      17530
+    ],
+    "instrumentalness_between_ss_share": 0.9730218110901931,
+    "historical_equivalence": "NOT VERIFIED"
+  },
+  "documentation_links": "PASS",
+  "wheel_sha256": "0f7cfb557ad502ac15ba53b1e1ed0f9b5dd49bd0ef72869ae0dbc22e1aab95f0",
+  "http_smoke": {
+    "status": "PASS",
+    "port": 8000,
+    "worktree": "D:\\spotify_music_cluster",
+    "statuses": {
+      "health": 200,
+      "model": 200,
+      "clusters": 200,
+      "swagger": 200,
+      "openapi": 200,
+      "single": 200,
+      "batch": 200,
+      "invalid": 422
+    },
+    "pid": 30520,
+    "command": "python plans/20261112-fastapi-backend/verify-http.py --serve",
+    "startup_seconds": 1.0310000000008586,
+    "model_id": "spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363",
+    "verified_records": 32,
+    "prediction_counts": {
+      "0": 25,
+      "1": 7
+    },
+    "single_result": {
+      "cluster_id": 0,
+      "distances": [
+        2.7783335136536538,
+        8.888969568042624
+      ]
+    },
+    "max_distance_absolute_error": 0.0,
+    "server_exit_code": 0,
+    "port_released": true
+  }
+}

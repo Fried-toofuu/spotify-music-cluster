@@ -1,0 +1,7 @@
+{
+  "wheel-pip-upgrade": 0,
+  "wheel-install": 0,
+  "wheel-pip-check": 0,
+  "wheel-import": 0,
+  "wheel_has_no_private_data": true
+}

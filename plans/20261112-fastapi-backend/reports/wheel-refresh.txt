@@ -1,0 +1,7 @@
+Processing .\dist\spotify_music_clustering_web-0.1.0-py3-none-any.whl
+Installing collected packages: spotify-music-clustering-web
+  Attempting uninstall: spotify-music-clustering-web
+    Found existing installation: spotify-music-clustering-web 0.1.0
+    Uninstalling spotify-music-clustering-web-0.1.0:
+      Successfully uninstalled spotify-music-clustering-web-0.1.0
+Successfully installed spotify-music-clustering-web-0.1.0

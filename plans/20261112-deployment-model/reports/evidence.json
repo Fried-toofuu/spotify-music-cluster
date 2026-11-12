@@ -1,0 +1,408 @@
+{
+  "environment": {
+    "python": "3.12.10",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "scipy": "1.15.3",
+    "scikit_learn": "1.6.1",
+    "joblib": "1.5.1",
+    "threadpoolctl": "3.6.0"
+  },
+  "metadata": {
+    "dataset_sha256": "b202fa49909b2d5cef71a04b1d21243cfeb36414535f2ca9272aa646721177bd",
+    "raw_rows": 114000,
+    "training_sample_count": 89741,
+    "distinct_genres": 114,
+    "preparation_version": "notebook-track-f9-v1",
+    "prepared_fingerprint": "35cd173326261791b7c48689176af25a92604d2d543824269059d0816237f407",
+    "schema_version": 1,
+    "model_id": "spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363",
+    "created_at": "2026-11-12T10:03:35.096272+00:00",
+    "features": [
+      "acousticness",
+      "danceability",
+      "energy",
+      "valence",
+      "tempo",
+      "loudness",
+      "speechiness",
+      "instrumentalness",
+      "liveness"
+    ],
+    "scaler_params": {
+      "copy": true,
+      "quantile_range": [
+        25.0,
+        75.0
+      ],
+      "unit_variance": false,
+      "with_centering": true,
+      "with_scaling": true
+    },
+    "kmeans_params": {
+      "algorithm": "lloyd",
+      "copy_x": true,
+      "init": "k-means++",
+      "max_iter": 300,
+      "n_clusters": 2,
+      "n_init": 20,
+      "random_state": 42,
+      "tol": 0.0001,
+      "verbose": 0
+    },
+    "number_of_clusters": 2,
+    "modeling_pca": null,
+    "environment": {
+      "python": "3.12.10",
+      "numpy": "2.2.6",
+      "pandas": "2.2.3",
+      "scipy": "1.15.3",
+      "scikit_learn": "1.6.1",
+      "joblib": "1.5.1",
+      "threadpoolctl": "3.6.0"
+    },
+    "reconstruction_status": "new_deployment_refit",
+    "historical_equivalence": "NOT VERIFIED",
+    "holdout_evaluated": false,
+    "execution": {
+      "thread_limit": 1,
+      "scope": "offline"
+    },
+    "cluster_counts": [
+      72211,
+      17530
+    ],
+    "cluster_shares": [
+      0.8046600773336602,
+      0.1953399226663398
+    ],
+    "training_profile": "deployment-v1",
+    "deployment_profile": "spotify-f9-robust-kmeans-k2-v1",
+    "model_origin": "new_deployment_refit",
+    "configuration_provenance": {
+      "authorization": "User-approved new deployment recipe; historical identity unverified",
+      "features": "Notebook cell 11 and archived selection in cells 109-110",
+      "scaler": "Notebook RobustScaler method; explicit user-approved scaler parameters",
+      "n_clusters": "Notebook archived selected K=2, cells 109-110",
+      "modeling_pca": "None; notebook archived selected representation",
+      "random_state": "Notebook development seed, cell 3",
+      "n_init": "Notebook FULL development F9 K-Means example, cell 82",
+      "init": "Explicitly adopted scikit-learn 1.6 default",
+      "max_iter": "Explicitly adopted scikit-learn 1.6 default",
+      "tol": "Explicitly adopted scikit-learn 1.6 default",
+      "algorithm": "Explicitly adopted scikit-learn 1.6 default",
+      "copy_x": "Explicitly adopted scikit-learn 1.6 default",
+      "verbose": "Explicitly adopted scikit-learn 1.6 default",
+      "reference": "https://scikit-learn.org/1.6/modules/generated/sklearn.cluster.KMeans.html"
+    },
+    "artifact_sha256": "9c23058262845f3efa2ac2acaf277a9e66ea90066561c893ab6844b586946435",
+    "profile_sha256": "90346684cab0a7b6ee5b1b52a0f8c6d5b58f83bfa741e4b3866b17c4c57b924e",
+    "verification_sample_sha256": "5345b8f1b35e4f2b50bb87796e116a4a2e0fec5c0f5758a1e4f3faa7be86a4e9"
+  },
+  "profiles": {
+    "model_id": "spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363",
+    "units": "raw F9",
+    "std_ddof": 1,
+    "singleton_std": 0,
+    "clusters": {
+      "0": {
+        "cluster_id": 0,
+        "count": 72211,
+        "share": 0.8046600773336602,
+        "mean": {
+          "acousticness": 0.314099710268104,
+          "danceability": 0.5777523369015763,
+          "energy": 0.6555546277893972,
+          "valence": 0.5097608272285421,
+          "tempo": 122.81043016991973,
+          "loudness": -7.461744817271643,
+          "speechiness": 0.09267347634016716,
+          "instrumentalness": 0.019433069350376177,
+          "liveness": 0.22488793272493285
+        },
+        "median": {
+          "acousticness": 0.192,
+          "danceability": 0.584,
+          "energy": 0.688,
+          "valence": 0.505,
+          "tempo": 122.013,
+          "loudness": -6.688,
+          "speechiness": 0.0492,
+          "instrumentalness": 5.33e-06,
+          "liveness": 0.139
+        },
+        "std": {
+          "acousticness": 0.31563652407329834,
+          "danceability": 0.16102273242370577,
+          "energy": 0.23106672581024437,
+          "valence": 0.24898400400077514,
+          "tempo": 29.772700082590802,
+          "loudness": 3.7711853580357797,
+          "speechiness": 0.1228724959039972,
+          "instrumentalness": 0.06383381938579569,
+          "liveness": 0.20006902375122096
+        },
+        "q1": {
+          "acousticness": 0.0244,
+          "danceability": 0.472,
+          "energy": 0.493,
+          "valence": 0.308,
+          "tempo": 99.901,
+          "loudness": -9.256,
+          "speechiness": 0.0353,
+          "instrumentalness": 0.0,
+          "liveness": 0.0992
+        },
+        "q3": {
+          "acousticness": 0.581,
+          "danceability": 0.694,
+          "energy": 0.85,
+          "valence": 0.71,
+          "tempo": 141.926,
+          "loudness": -4.866,
+          "speechiness": 0.0914,
+          "instrumentalness": 0.0009094999999999999,
+          "liveness": 0.293
+        },
+        "iqr": {
+          "acousticness": 0.5566,
+          "danceability": 0.22199999999999998,
+          "energy": 0.357,
+          "valence": 0.40199999999999997,
+          "tempo": 42.02499999999999,
+          "loudness": 4.390000000000001,
+          "speechiness": 0.0561,
+          "instrumentalness": 0.0009094999999999999,
+          "liveness": 0.19379999999999997
+        }
+      },
+      "1": {
+        "cluster_id": 1,
+        "count": 17530,
+        "share": 0.1953399226663398,
+        "mean": {
+          "acousticness": 0.3867386773656564,
+          "danceability": 0.4979598231602992,
+          "energy": 0.5475545367541333,
+          "valence": 0.3035385588134643,
+          "tempo": 118.96014740444912,
+          "loudness": -12.77176868225896,
+          "speechiness": 0.06589224757558455,
+          "instrumentalness": 0.8077021106674255,
+          "liveness": 0.1843513462635496
+        },
+        "median": {
+          "acousticness": 0.149,
+          "danceability": 0.52,
+          "energy": 0.586,
+          "valence": 0.229,
+          "tempo": 122.013,
+          "loudness": -10.66,
+          "speechiness": 0.0482,
+          "instrumentalness": 0.858,
+          "liveness": 0.114
+        },
+        "std": {
+          "acousticness": 0.41392264757142455,
+          "danceability": 0.21885154748474647,
+          "energy": 0.3282815094735567,
+          "valence": 0.25326761842096746,
+          "tempo": 31.309157209013907,
+          "loudness": 7.635587055168046,
+          "speechiness": 0.05404414174041081,
+          "instrumentalness": 0.1418369290424022,
+          "liveness": 0.1680011732138274
+        },
+        "q1": {
+          "acousticness": 0.00263,
+          "danceability": 0.322,
+          "energy": 0.237,
+          "valence": 0.0897,
+          "tempo": 96.60425000000001,
+          "loudness": -17.02925,
+          "speechiness": 0.0384,
+          "instrumentalness": 0.73425,
+          "liveness": 0.0953
+        },
+        "q3": {
+          "acousticness": 0.882,
+          "danceability": 0.681,
+          "energy": 0.866,
+          "valence": 0.461,
+          "tempo": 136.19025,
+          "loudness": -7.0755,
+          "speechiness": 0.07,
+          "instrumentalness": 0.913,
+          "liveness": 0.199
+        },
+        "iqr": {
+          "acousticness": 0.87937,
+          "danceability": 0.35900000000000004,
+          "energy": 0.629,
+          "valence": 0.3713,
+          "tempo": 39.585999999999984,
+          "loudness": 9.953750000000001,
+          "speechiness": 0.03160000000000001,
+          "instrumentalness": 0.17875000000000008,
+          "liveness": 0.10370000000000001
+        }
+      }
+    },
+    "feature_contributions": {
+      "definition": "Per-feature between-cluster sum of squares in fitted RobustScaler space",
+      "population": "all training assignments; no Holdout evaluation",
+      "between_ss": {
+        "acousticness": 201.40460861590788,
+        "danceability": 1533.5146629401224,
+        "energy": 1049.1854084316678,
+        "valence": 3199.55586509395,
+        "tempo": 125.54013260041839,
+        "loudness": 14630.031558960252,
+        "speechiness": 4063.0697511036215,
+        "instrumentalness": 920118.3161876791,
+        "liveness": 709.0744999736113
+      },
+      "shares": {
+        "acousticness": 0.00021298464946261264,
+        "danceability": 0.0016216862423190895,
+        "energy": 0.001109509797078481,
+        "valence": 0.003383518823358527,
+        "tempo": 0.00013275823884636827,
+        "loudness": 0.01547120577143534,
+        "speechiness": 0.004296681653056267,
+        "instrumentalness": 0.9730218110901931,
+        "liveness": 0.0007498437342502227
+      }
+    }
+  },
+  "tools": {
+    "pip": "26.3",
+    "pytest": "9.0.3",
+    "ruff": "0.14.4",
+    "build": "1.3.0",
+    "pip-audit": "2.10.1"
+  },
+  "unit_tests": "..............................................................ssss....   [100%]\n66 passed, 4 skipped in 7.54s\n",
+  "real_model_tests": "....                                                                     [100%]\n4 passed in 6.44s\n",
+  "wheel_contents": [
+    "spotify_cluster/__init__.py",
+    "spotify_cluster/config.py",
+    "spotify_cluster/data.py",
+    "spotify_cluster/inference.py",
+    "spotify_cluster/model_store.py",
+    "spotify_cluster/training.py",
+    "spotify_cluster/verification.py",
+    "spotify_music_clustering_web-0.1.0.dist-info/METADATA",
+    "spotify_music_clustering_web-0.1.0.dist-info/WHEEL",
+    "spotify_music_clustering_web-0.1.0.dist-info/top_level.txt",
+    "spotify_music_clustering_web-0.1.0.dist-info/RECORD"
+  ],
+  "sdist_contents": [
+    "spotify_music_clustering_web-0.1.0",
+    "spotify_music_clustering_web-0.1.0/.python-version",
+    "spotify_music_clustering_web-0.1.0/AGENTS.md",
+    "spotify_music_clustering_web-0.1.0/MANIFEST.in",
+    "spotify_music_clustering_web-0.1.0/PKG-INFO",
+    "spotify_music_clustering_web-0.1.0/README.md",
+    "spotify_music_clustering_web-0.1.0/docs",
+    "spotify_music_clustering_web-0.1.0/docs/ARCHITECTURE.md",
+    "spotify_music_clustering_web-0.1.0/docs/MODEL_SERVING.md",
+    "spotify_music_clustering_web-0.1.0/docs/NOTEBOOK_AUDIT.md",
+    "spotify_music_clustering_web-0.1.0/pyproject.toml",
+    "spotify_music_clustering_web-0.1.0/scripts",
+    "spotify_music_clustering_web-0.1.0/scripts/export_model.py",
+    "spotify_music_clustering_web-0.1.0/setup.cfg",
+    "spotify_music_clustering_web-0.1.0/src",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/__init__.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/config.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/data.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/inference.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/model_store.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/training.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_cluster/verification.py",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/PKG-INFO",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/SOURCES.txt",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/dependency_links.txt",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/requires.txt",
+    "spotify_music_clustering_web-0.1.0/src/spotify_music_clustering_web.egg-info/top_level.txt",
+    "spotify_music_clustering_web-0.1.0/tests",
+    "spotify_music_clustering_web-0.1.0/tests/conftest.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_cli.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_data.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_deployment.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_inference.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_model_store.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_real_model.py",
+    "spotify_music_clustering_web-0.1.0/tests/test_training.py"
+  ],
+  "packages": {
+    "spotify_music_clustering_web-0.1.0-py3-none-any.whl": {
+      "bytes": 15828,
+      "sha256": "d0814739522f381d2c8a5ef5e0ab884e09524b56bc04d5bf038ec1edbbd86ae6"
+    },
+    "spotify_music_clustering_web-0.1.0.tar.gz": {
+      "bytes": 27660,
+      "sha256": "cb7aa3dcc48c64550318df5d5b7cf0b316c3e67d6fb1845ed834cb2915c11069"
+    }
+  },
+  "wheel_inference": {
+    "status": "PASS",
+    "model_id": "spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363",
+    "sample_records": 32,
+    "single_inference": "PASS",
+    "batch_order": "PASS",
+    "distances": "PASS",
+    "profiles": "PASS",
+    "strict_validation": "PASS",
+    "dataset_notebook_network_fitting_denied": true,
+    "package_import_path": "D:\\spotify_music_cluster\\.venv-deployment-check\\Lib\\site-packages\\spotify_cluster\\__init__.py"
+  },
+  "notebook_sha256": "76a31ac55e385238761d7decbc5117cede6f1ad8a2c9285504e80c4a2526b178",
+  "artifacts": {
+    "cluster_profiles.json": {
+      "bytes": 5554,
+      "sha256": "90346684cab0a7b6ee5b1b52a0f8c6d5b58f83bfa741e4b3866b17c4c57b924e"
+    },
+    "metadata.json": {
+      "bytes": 3126,
+      "sha256": "39e64e022708e18cc08b8b857d5653e22f8f5ec36395783f84d26e5a48c4ba17"
+    },
+    "model_bundle.joblib": {
+      "bytes": 360526,
+      "sha256": "9c23058262845f3efa2ac2acaf277a9e66ea90066561c893ab6844b586946435"
+    },
+    "verification_report.json": {
+      "bytes": 750,
+      "sha256": "3874e879e973880288d8d7ef97b587bda27caa0469a09df10b807b07d277a6fd"
+    },
+    "verification_sample.json": {
+      "bytes": 10037,
+      "sha256": "5345b8f1b35e4f2b50bb87796e116a4a2e0fec5c0f5758a1e4f3faa7be86a4e9"
+    }
+  },
+  "local_links": [
+    "README.md: docs/NOTEBOOK_AUDIT.md",
+    "README.md: pyproject.toml",
+    "README.md: docs/MODEL_SERVING.md",
+    "README.md: src/spotify_cluster/config.py",
+    "README.md: docs/ARCHITECTURE.md",
+    "README.md: docs/MODEL_SERVING.md",
+    "README.md: docs/NOTEBOOK_AUDIT.md",
+    "README.md: plans/20261112-deployment-model/reports/verification.md",
+    "README.md: plans/20261112-spotify-foundation/reports/verification.md",
+    "AGENTS.md: README.md",
+    "AGENTS.md: docs/ARCHITECTURE.md",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/config.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/data.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/training.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/model_store.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/verification.py",
+    "docs\\ARCHITECTURE.md: ../src/spotify_cluster/inference.py",
+    "docs\\ARCHITECTURE.md: ../scripts/export_model.py",
+    "docs\\MODEL_SERVING.md: ../src/spotify_cluster/model_store.py",
+    "docs\\MODEL_SERVING.md: ../README.md",
+    "docs\\NOTEBOOK_AUDIT.md: ../src/spotify_cluster/config.py"
+  ]
+}

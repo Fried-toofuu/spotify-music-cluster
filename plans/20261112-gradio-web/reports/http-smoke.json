@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "worktree": "D:\\spotify_music_cluster",
+  "processes": [
+    {
+      "name": "backend",
+      "pid": 33600,
+      "port": 8000,
+      "command": "D:\\spotify_music_cluster\\.venv\\Scripts\\python.exe -u D:\\spotify_music_cluster\\plans\\20261112-fastapi-backend\\verify-http.py --serve"
+    },
+    {
+      "name": "frontend",
+      "pid": 25660,
+      "port": 7860,
+      "command": "D:\\spotify_music_cluster\\.venv\\Scripts\\python.exe -u D:\\spotify_music_cluster\\plans\\20261112-gradio-web\\verify-http.py --serve-web"
+    }
+  ],
+  "model_id": "spotify-f9-robust-k2-0828777db6924fe39e47335c19cc9363",
+  "training_count": 89741,
+  "cluster_counts": [
+    72211,
+    17530
+  ],
+  "private_sample_agreement": true,
+  "gradio_http_prediction": true,
+  "offline_feedback": true,
+  "exit_codes": [
+    0,
+    0
+  ],
+  "ports_released": {
+    "8000": true,
+    "7860": true
+  }
+}

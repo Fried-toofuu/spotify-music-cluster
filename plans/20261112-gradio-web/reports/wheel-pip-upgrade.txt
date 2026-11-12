@@ -1,0 +1,1 @@
+Requirement already satisfied: pip>=26.2.2 in D:\spotify_music_cluster\.venv-web-wheel\Lib\site-packages (26.3)

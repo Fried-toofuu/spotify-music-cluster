@@ -1,0 +1,1 @@
+{"import_path": "D:\\spotify_music_cluster\\.venv-wheel\\Lib\\site-packages\\spotify_cluster\\__init__.py", "fixture_only": true, "single_batch_roundtrip": "PASS"}
