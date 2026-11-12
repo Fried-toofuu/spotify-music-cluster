@@ -55,8 +55,9 @@ A research-oriented hero, the interactive **cluster space preview** (every
 fourth verified sample point, with 2D/3D/density controls), a compact model fact
 sheet, the dominant instrumentalness finding, population balance, entry cards
 and model identity. The preview is explicitly labeled and never claims to be
-the full sample. In public aggregate mode no individual points exist; the
-preview renders the density grid with a disclosure.
+the full sample. In aggregate fallback mode no individual points exist; the
+preview renders the density grid with a disclosure. The approved public points
+mode enables the same 2D/3D/density preview as the local points artifact.
 
 ### Cluster Explorer
 
@@ -158,10 +159,11 @@ stale clearing, keyboard tab order, focus outline, reduced motion and the
 `plans/20261112-acoustic-observatory/reports/browser.json`, and stops both
 processes. The private points mode, Plotly 3D, point selection and neighbors,
 Three.js constellation and the WebGL-disabled SVG fallback were exercised in
-Chromium against the private artifact during the upgrade; the committed script
-deliberately mounts only the public aggregate artifact so private coordinates
-never enter committed evidence. Screenshots in `docs/screenshots/` were captured
-from the real aggregate-mode application; they are not mockups.
+Chromium against the points artifact during the upgrade; the committed script
+mounts the aggregate artifact so per-track coordinates never enter committed
+evidence. The points artifact is served only from the private deployment
+dataset. Screenshots in `docs/screenshots/` were captured from the real
+aggregate-mode application; they are not mockups.
 
 ## Privacy and local file serving
 

@@ -21,9 +21,11 @@ image.
 ```
 
 For a private/local deployment the operator may use the points artifact
-(`visualization-v1`) and `SPOTIFY_VISUALIZATION_DIR` accordingly. The public
-compose configuration intentionally mounts **only the aggregate** artifact:
-per-track coordinates are not distributed without separate approval.
+(`visualization-v1`) and `SPOTIFY_VISUALIZATION_DIR` accordingly. The compose
+configuration intentionally mounts **only the aggregate** artifact; the
+owner-approved Render blueprint mounts points. Per-track coordinates are
+distributed only under the recorded approval (2026-11-12) and with ODbL
+attribution.
 
 ## Container configuration
 
@@ -53,9 +55,11 @@ curl http://127.0.0.1:7860/
 ```
 
 The image sets `SPOTIFY_PUBLIC_MODE=1` in compose and mounts only the aggregate
-visualization. The image contains the built `constellation.js` and its
-third-party license notice. The Plotly.js browser asset is served from the installed `plotly`
-package; both are pinned by `constraints.txt`.
+visualization. The owner-approved Render blueprint overrides this with
+`PUBLIC_MODE=0` and the points artifact. The image contains the built
+`constellation.js` and its third-party license notice. The Plotly.js browser
+asset is served from the installed `plotly` package; both are pinned by
+`constraints.txt`.
 
 **Verification status:** the Docker CLI is not installed in the development
 environment used for this implementation, so the container build and compose
@@ -107,16 +111,21 @@ therefore skipped by pip-audit.
    the previous bundle and artifact versions available read-only.
 5. The historical final estimator remains gated and is not reconstructed by any
    deployment operation.
+6. The private Hugging Face dataset uses one `visualization/` path for both
+   modes. Uploading a different mode replaces the artifact for every host that
+   downloads it; update `PUBLIC_MODE` and the artifact together.
 
 ## Hugging Face Spaces
 
 A Docker Space can run the same FastAPI + Gradio pair for a public demo. The
 model bundle and private verification sample live in a **private** Hugging Face
 Dataset (`Khahn-nh/acoustic-observatory-artifacts`); the public Space downloads
-them at startup using an `HF_TOKEN` secret. The default Space uses the aggregate
-artifact only and sets `SPOTIFY_PUBLIC_MODE=1`; no per-track coordinates are
-served. A points-mode deployment requires explicit redistribution approval and
-is not the default.
+them at startup using an `HF_TOKEN` secret. The owner approved public per-track
+coordinates and 3D on 2026-11-12; the dataset now carries the points artifact.
+`deploy/huggingface/deploy.py` still defaults to aggregate and requires
+`--visualization-mode points --allow-public-points` for the approved points
+mode. Deployments without that approval must use the aggregate artifact and
+`SPOTIFY_PUBLIC_MODE=1`.
 
 As of 2026-11-12, Hugging Face rejects Docker and Gradio Spaces on the free
 `cpu-basic` plan with HTTP 402: "Static Spaces are free for everyone, but
@@ -137,7 +146,7 @@ production deployment.
 
 ## Render free web service
 
-`render.yaml` and `deploy/render/Dockerfile` run the aggregate public app on a
+`render.yaml` and `deploy/render/Dockerfile` run the approved public app on a
 Render free Docker web service. The container downloads the private artifacts
 from the Hugging Face dataset at startup using `HF_TOKEN`; the model bundle and
 verification sample never enter the Git repository, the image or the Render
@@ -154,15 +163,20 @@ Operator steps:
 
 Free-plan limits: 512 MB memory, one instance, spins down after 15 minutes of
 inactivity and takes roughly a minute to cold-start. There is no application
-authentication or rate limiting. `PUBLIC_MODE=1` (blueprint default) serves the
-aggregate artifact and disables 2D/3D per-track views; points mode requires
-explicit redistribution approval.
+authentication or rate limiting. `PUBLIC_MODE=0` is set in the blueprint because
+the owner approved public per-track coordinates on 2026-11-12. The app serves the
+points artifact: a 6,000-track stratified sample with PCA coordinates, cluster
+assignments and F9 acoustic rows, no track identifiers/names/genres, and ODbL
+attribution in the footer. The 2D, 3D and constellation views are enabled. For
+any deployment without that approval, mount the aggregate artifact and set
+`PUBLIC_MODE=1`.
 
 ## Public deployment status
 
-The local application, the aggregate-mode compose configuration, the Render
-blueprint and the Hugging Face Space package are complete. A public URL requires
-an operator account on the chosen platform and, for Hugging Face dynamic Spaces,
-a PRO subscription; this environment holds no hosting account, so no public URL
-is claimed. The default public configuration serves the aggregate artifact
-only; serving per-track points publicly requires separate authorization.
+The local application, the aggregate-mode compose configuration, the
+points-mode Render blueprint and the Hugging Face Space package are complete. A
+public URL requires an operator account on the chosen platform and, for Hugging
+Face dynamic Spaces, a PRO subscription; this environment holds no hosting
+account, so no public URL is claimed. Public per-track coordinates and 3D were
+explicitly approved by the owner on 2026-11-12; ODbL attribution is displayed
+and no track identifiers are distributed.

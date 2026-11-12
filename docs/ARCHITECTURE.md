@@ -68,9 +68,10 @@ dataset, notebook, model bundle, verification sample or arbitrary paths.
 
 The browser never assigns clusters, loads the model, or reads the dataset. It
 calls Gradio events; Gradio calls FastAPI over HTTP. Stale visualization or
-research state is cleared when model identities disagree. The private points
-artifact supports selection and nearest-neighbor details; the public aggregate
-mode shows density only and never exposes individual tracks.
+research state is cleared when model identities disagree. The points artifact
+supports 2D/3D selection and nearest-neighbor details; the approved public
+deployment serves it with no track identifiers. The aggregate fallback mode
+shows density only and never exposes individual tracks.
 
 ## Three.js constellation
 

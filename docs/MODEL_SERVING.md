@@ -39,12 +39,14 @@ consistency evidence, not an independent evaluation set. Keep it local and ignor
 These are separate offline exports; neither is part of the joblib bundle and
 neither trains or alters the model.
 
-- `visualization-v1` (private/local) contains visualization-only PCA coordinates,
-  a deterministic stratified 6,000-point sample, raw F9 rows (no identifiers),
-  the fitted scaler state for independent projection verification, and an
-  aggregate occupancy grid. See [VISUALIZATION.md](VISUALIZATION.md).
+- `visualization-v1` (points; local and owner-approved public) contains
+  visualization-only PCA coordinates, a deterministic stratified 6,000-point
+  sample, raw F9 rows (no identifiers), the fitted scaler state for independent
+  projection verification, and an aggregate occupancy grid. See
+  [VISUALIZATION.md](VISUALIZATION.md).
 - `visualization-public-v1` contains the aggregate occupancy grid only; no
-  per-track coordinates/features. This is the default public deployment mount.
+  per-track coordinates/features. This is the safe fallback mount for any
+  deployment without recorded approval.
 - `research-v1` contains the labeled controlled training-population comparison
   and archived historical evidence; no per-track rows. See [RESEARCH.md](RESEARCH.md).
 
@@ -59,8 +61,9 @@ The visualization pipeline uses the **fitted deployment scaler** for the scaling
 step, fits only a visualization PCA, and verifies assignments against
 `KMeans.labels_` and the model profiles. It never fits a new clustering estimator.
 PCA coordinates are not model training coordinates. Sample points carry no track
-identifiers. Public aggregate cells meet a minimum count and are never labeled as
-individual tracks.
+identifiers. Aggregate cells meet a minimum count and are never labeled as
+individual tracks. The owner approved public per-track coordinates on
+2026-11-12; ODbL attribution is displayed.
 
 ## Inference interface
 

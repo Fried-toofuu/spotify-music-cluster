@@ -19,11 +19,12 @@ acoustic clustering, built from the authorized Spotify Tracks Dataset
 - The model bundle and private verification sample live in a **private
   Hugging Face dataset** and are downloaded at startup with an `HF_TOKEN`
   Space secret. They are not part of this public repository.
-- The default public Space mounts the **aggregate** visualization artifact only
-  (`SPOTIFY_PUBLIC_MODE=1`): no per-track coordinates or raw F9 rows are
-  distributed. A points-mode deployment is available only with explicit
-  redistribution approval; it serves per-track derived coordinates through the
-  app with ODbL attribution.
+- The owner approved public per-track coordinates and 3D on 2026-11-12. The
+  approved public deployment mounts the **points** artifact
+  (`SPOTIFY_PUBLIC_MODE=0`): a 6,000-track stratified sample with PCA
+  coordinates, cluster assignments and F9 acoustic rows, no track
+  identifiers/names/genres, and ODbL attribution. The deploy script defaults to
+  the aggregate artifact; points mode requires `--allow-public-points`.
 - Clusters are acoustic groups, not genres or moods. Centroid distances are not
   probabilities. Historical estimator equivalence is **NOT VERIFIED**; the
   historical Holdout remains closed.

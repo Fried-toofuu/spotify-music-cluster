@@ -8,10 +8,11 @@ Three.js constellation.
 
 ![Acoustic Observatory overview](docs/screenshots/overview-1440.png)
 
-The screenshots in this repository use the **aggregate public** visualization
-mode. The private per-track points mode is available locally and was tested in a
-real browser; its coordinates are not committed because per-track derived data
-requires separate redistribution approval.
+The screenshots in this repository were captured in **aggregate** visualization
+mode, so no per-track coordinates appear in committed evidence. The owner
+approved public per-track coordinates and 3D on 2026-11-12; the public deployment
+serves the points artifact over its private dataset, and the artifact is never
+committed to Git.
 
 ## What the application does
 
@@ -46,8 +47,10 @@ requires separate redistribution approval.
   artifact) is stated explicitly.
 - PCA coordinates are visualization-only. They are not the model's training
   coordinates and are not used to assign clusters.
-- Data license: ODbL 1.0. Track-level derived coordinates remain private by
-  default; public deployment uses an aggregate-only artifact.
+- Data license: ODbL 1.0. The approved public deployment serves a 6,000-track
+  points sample (coordinates and F9 rows, no track identifiers) with ODbL
+  attribution; deployments without that approval must use the aggregate
+  artifact.
 
 ## Architecture
 
@@ -152,12 +155,13 @@ third-party license; the Plotly browser asset is served from the installed
 `Dockerfile` + `compose.yaml` prepare a non-root container pair with health
 checks, read-only mounts and the aggregate public visualization by default.
 `deploy/nginx.conf.example` sketches TLS and rate limiting. `render.yaml` and
-`deploy/render/Dockerfile` deploy the same aggregate app to a Render free web
-service, downloading private artifacts from the Hugging Face dataset with an
-`HF_TOKEN` secret. Free Hugging Face Docker Spaces require a PRO subscription
-(HTTP 402 as of 2026-11-12). No public URL is claimed until an operator account
-is connected; per-track points mode requires separate redistribution approval.
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
+`deploy/render/Dockerfile` deploy the approved public points mode to a Render
+free web service, enabling 2D/3D Explorer views over a 6,000-track sample with
+no track identifiers and ODbL attribution. Private artifacts are downloaded from
+the Hugging Face dataset with an `HF_TOKEN` secret. The owner approved public
+per-track coordinates on 2026-11-12. Free Hugging Face Docker Spaces require a
+PRO subscription (HTTP 402 as of 2026-11-12). No public URL is claimed until an
+operator account is connected. See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Repository boundaries
 

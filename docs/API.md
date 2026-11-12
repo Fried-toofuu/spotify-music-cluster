@@ -54,8 +54,10 @@ bounded to 100 records.
 
 With `SPOTIFY_PUBLIC_MODE=1`, the API refuses a per-track visualization artifact;
 only the aggregate artifact is served, and the points/neighbors routes return
-404 even if a private directory is mounted. The compose public configuration
-sets this mode.
+404 even if a private directory is mounted. The compose configuration defaults
+to this safe mode. The owner-approved public points deployment sets
+`SPOTIFY_PUBLIC_MODE=0`: the 6,000-track sample with coordinates, cluster,
+F9 rows and neighbors is served, without track identifiers or metadata.
 
 The visualization endpoints are additive and optional. The frontend checks
 `model_id` on every artifact response; mismatched or stale artifacts are

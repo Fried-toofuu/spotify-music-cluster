@@ -17,9 +17,14 @@ The dataset page describes the database as **ODbL 1.0**, with
 `Database: Open Database, Contents: © Original Authors`. ODbL permits sharing
 and adaptation with attribution and share-alike obligations. Separately, the
 project's data-publication boundary requires approval before publishing derived
-artifacts. The default local application therefore uses the **points** artifact
-(private/local), while the public deployment uses the **aggregate** artifact.
-The repository never commits either artifact or the raw CSV.
+artifacts. On 2026-11-12 the repository owner explicitly approved publishing the
+per-track derived coordinates for the public 3D Explorer. The approved public
+deployment therefore serves the **points** artifact: a 6,000-track stratified
+sample with coordinates, cluster assignments and F9 acoustic rows, and **no
+track identifiers, names, artists, genres or row positions**. ODbL attribution
+is displayed in the app footer. Deployments without that approval must keep the
+aggregate artifact and `SPOTIFY_PUBLIC_MODE=1`. The repository never commits
+either artifact or the raw CSV.
 
 ## Prepare the artifacts
 
@@ -116,7 +121,7 @@ recursively rejects record-level field names.
 | Method | Path | Content |
 |---|---|---|
 | GET | `/api/v1/visualization/meta` | Available/ unavailable, mode, identity, PCA, sample policy, views, license |
-| GET | `/api/v1/visualization/points` | Points view (private artifact only), including occupancy for the density switch |
+| GET | `/api/v1/visualization/points` | Points view when a points artifact is mounted (local or approved public), including occupancy for the density switch |
 | GET | `/api/v1/visualization/occupancy` | Aggregate density view |
 | GET | `/api/v1/visualization/neighbors?index=&k=` | Selected sampled point and up to 12 nearest sampled tracks in fitted scaled F9 space |
 
@@ -126,7 +131,12 @@ readiness failure. Responses are compressed (`gzip`, ~207 KB for the 6,000-point
 payload; ~574 KB uncompressed) and bounded. The browser never opens the model
 bundle or dataset.
 
-## Public fallback
+## Public modes
+
+The approved public configuration mounts `artifacts/visualization-v1` (points)
+and sets `SPOTIFY_PUBLIC_MODE=0`; the Explorer exposes the 2D, 3D and
+constellation views for the 6,000-track sample. Track identifiers never exist in
+the artifact, and the footer displays the ODbL attribution.
 
 If per-track redistribution approval is unavailable, deploy with
 `SPOTIFY_VISUALIZATION_DIR=artifacts/visualization-public-v1` **and**
@@ -135,8 +145,8 @@ visualization meta reports unavailable for points, and the points/neighbors
 routes are not reachable. The Explorer serves the aggregate density view: cells
 contain at least 10 training tracks, are never labeled as individual tracks, and
 no per-track coordinates or features leave the server. The UI states this
-explicitly. A local loopback app without public mode may serve the private
-artifact; it is never mounted by the public compose configuration.
+explicitly. The compose configuration still defaults to this aggregate mode; the
+Render blueprint and Hugging Face points mode require the recorded approval.
 
 ## Performance and limits
 
