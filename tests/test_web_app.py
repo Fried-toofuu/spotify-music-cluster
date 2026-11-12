@@ -15,14 +15,14 @@ def test_application_constructs_offline():
     tabs = [c["props"]["label"] for c in config["components"] if c["type"] == "tabitem"]
     assert tabs == [
         "Overview",
-        "Predict Cluster",
         "Cluster Explorer",
+        "Predict Cluster",
         "Research & Methodology",
     ]
     names = {d["api_name"] for d in config["dependencies"]}
     assert {"refresh", "refresh_live_data", "predict_cluster"} <= names
-    assert len(config["dependencies"]) == 8
-    assert theme().body_background_fill == "#141b18"
+    assert len(config["dependencies"]) == 13
+    assert theme().body_background_fill == "#080d0f"
 
 
 def test_imports_do_not_load_model_dataset_or_start_servers(tmp_path):
@@ -76,9 +76,34 @@ def test_launch_policy_rejects_environment_file_allowances(monkeypatch):
     from spotify_cluster.web.app import launch_options
 
     monkeypatch.delenv("GRADIO_ALLOWED_PATHS", raising=False)
+    monkeypatch.delenv("SPOTIFY_WEB_HOST", raising=False)
+    monkeypatch.delenv("SPOTIFY_WEB_PORT", raising=False)
     options = launch_options()
     assert options["share"] is False and options["run_history"] is False
     assert options["server_port"] == 7860 and options["allowed_paths"] == []
     monkeypatch.setenv("GRADIO_ALLOWED_PATHS", "D:/private")
     with pytest.raises(ValueError, match="Remove GRADIO_ALLOWED_PATHS"):
         launch_options()
+    monkeypatch.delenv("GRADIO_ALLOWED_PATHS")
+    monkeypatch.setenv("SPOTIFY_WEB_HOST", "0.0.0.0")
+    monkeypatch.setenv("SPOTIFY_WEB_PORT", "8123")
+    options = launch_options()
+    assert options["server_name"] == "0.0.0.0"
+    assert options["server_port"] == 8123
+    monkeypatch.setenv("SPOTIFY_WEB_HOST", "public.example.org")
+    with pytest.raises(ValueError, match="SPOTIFY_WEB_HOST"):
+        launch_options()
+    monkeypatch.setenv("SPOTIFY_WEB_HOST", "127.0.0.1")
+    monkeypatch.setenv("SPOTIFY_WEB_PORT", "not-a-port")
+    with pytest.raises(ValueError, match="SPOTIFY_WEB_PORT"):
+        launch_options()
+    monkeypatch.setenv("SPOTIFY_WEB_PORT", "70000")
+    with pytest.raises(ValueError, match="SPOTIFY_WEB_PORT"):
+        launch_options()
+
+
+def test_browser_assets_are_packaged():
+    from spotify_cluster.web.assets import PACKAGE_STATIC
+
+    assert (PACKAGE_STATIC / "constellation.js").is_file()
+    assert (PACKAGE_STATIC / "THIRD_PARTY_LICENSES.txt").is_file()

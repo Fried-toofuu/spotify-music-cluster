@@ -18,3 +18,4 @@ artifacts/*/
 Spotify_Music_Clustering_Final.ipynb
 notebooks/*.ipynb
 !.python-version
+plans/20261112-acoustic-observatory/reports/screenshots/

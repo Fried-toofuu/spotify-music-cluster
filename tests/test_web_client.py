@@ -121,3 +121,83 @@ def test_optional_statistics(web_responses, web_client):
             p.pop(stat)
     web_responses["clusters"].pop("feature_contributions")
     assert web_client.clusters()["clusters"]["0"]["mean"]
+
+
+def test_visualization_and_research_contract(web_client):
+    meta = web_client.visualization_meta()
+    assert meta["available"] is True
+    assert meta["artifact_mode"] == "points"
+    points = web_client.visualization_points()
+    assert len(points["points"]["x"]) == points["sample"]["size"] == 4
+    assert web_client.visualization_occupancy()["view"] == "density"
+    neighbors = web_client.visualization_neighbors(0, 1)
+    assert neighbors["point"]["index"] == 0
+    assert neighbors["neighbors"][0]["index"] == 1
+    research = web_client.research()
+    assert research["available"] is True
+    assert research["holdout_evaluated"] is False
+    assert research["archived_evidence"]["status"].startswith("ARCHIVED")
+
+
+def test_optional_artifact_unavailable(web_responses, web_client):
+    web_responses["meta"] = {"available": False, "reason": "not provisioned"}
+    web_responses["comparison"] = {"available": False, "reason": "not provisioned"}
+    assert web_client.visualization_meta() == {
+        "available": False,
+        "reason": "not provisioned",
+    }
+    assert web_client.research() == {"available": False, "reason": "not provisioned"}
+
+
+@pytest.mark.parametrize(
+    "mutation,kind",
+    [
+        ("components", "meta"),
+        ("features", "points"),
+        ("cluster", "points"),
+        ("sorted", "neighbors"),
+        ("holdout", "comparison"),
+        ("license", "comparison"),
+    ],
+)
+def test_invalid_optional_payloads(mutation, kind, web_responses, web_client):
+    if mutation == "components":
+        web_responses["meta"]["pca"]["components"][0][0] = 0.5
+    elif mutation == "features":
+        web_responses["points"]["points"]["raw_features"][0].pop()
+    elif mutation == "cluster":
+        web_responses["points"]["points"]["cluster"][0] = 7
+    elif mutation == "sorted":
+        web_responses["neighbors"]["neighbors"] = [
+            {
+                **web_responses["neighbors"]["neighbors"][0],
+                "index": 2,
+                "distance": 3.0,
+            },
+            {
+                **web_responses["neighbors"]["neighbors"][0],
+                "index": 3,
+                "distance": 1.0,
+            },
+        ]
+    elif mutation == "holdout":
+        web_responses["comparison"]["holdout_evaluated"] = True
+    else:
+        web_responses["comparison"]["license"]["license"] = "unknown"
+    call = {
+        "meta": web_client.visualization_meta,
+        "points": web_client.visualization_points,
+        "neighbors": lambda: web_client.visualization_neighbors(0),
+        "comparison": web_client.research,
+    }[kind]
+    with pytest.raises(APIError, match="unexpected response"):
+        call()
+
+
+def test_neighbor_identity_and_bounds(web_responses, web_client):
+    with pytest.raises(APIError):
+        web_client.visualization_neighbors(1)
+    with pytest.raises(ValueError):
+        web_client.visualization_neighbors(-1)
+    with pytest.raises(ValueError):
+        web_client.visualization_neighbors(0, 13)

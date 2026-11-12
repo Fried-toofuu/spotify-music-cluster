@@ -1,0 +1,15 @@
+{
+  "name": "acoustic-observatory-constellation",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Offline build for the Three.js constellation bundle",
+  "scripts": {
+    "build": "esbuild entry.js --bundle --format=esm --minify --legal-comments=inline --outfile=../../src/spotify_cluster/web/static/constellation.js"
+  },
+  "dependencies": {
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0"
+  }
+}

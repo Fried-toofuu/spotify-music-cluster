@@ -1,0 +1,89 @@
+name: acoustic-observatory
+
+x-app: &app
+  build: .
+  image: acoustic-observatory:local
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  restart: unless-stopped
+
+services:
+  api:
+    <<: *app
+    command:
+      - uvicorn
+      - spotify_cluster.api.app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - "1"
+    environment:
+      SPOTIFY_MODEL_DIR: /artifacts/deployment-v1
+      SPOTIFY_VISUALIZATION_DIR: /artifacts/visualization-public-v1
+      SPOTIFY_RESEARCH_DIR: /artifacts/research-v1
+    volumes:
+      - ./artifacts/deployment-v1:/artifacts/deployment-v1:ro
+      - ./artifacts/visualization-public-v1:/artifacts/visualization-public-v1:ro
+      - ./artifacts/research-v1:/artifacts/research-v1:ro
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import sys, urllib.request
+          try:
+              response = urllib.request.urlopen(
+                  "http://127.0.0.1:8000/api/v1/health", timeout=4
+              )
+              sys.exit(0 if response.status == 200 else 1)
+          except Exception:
+              sys.exit(1)
+      interval: 30s
+      timeout: 6s
+      retries: 5
+      start_period: 30s
+
+  web:
+    <<: *app
+    command:
+      - python
+      - -m
+      - spotify_cluster.web.app
+    environment:
+      SPOTIFY_API_BASE_URL: http://api:8000
+      SPOTIFY_WEB_HOST: 0.0.0.0
+      SPOTIFY_WEB_PORT: "7860"
+      GRADIO_ANALYTICS_ENABLED: "False"
+      HF_HOME: /tmp/hf
+      GRADIO_TEMP_DIR: /tmp/gradio
+    ports:
+      - "7860:7860"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import sys, urllib.request
+          try:
+              response = urllib.request.urlopen(
+                  "http://127.0.0.1:7860/", timeout=6
+              )
+              sys.exit(0 if response.status == 200 else 1)
+          except Exception:
+              sys.exit(1)
+      interval: 30s
+      timeout: 8s
+      retries: 5
+      start_period: 40s

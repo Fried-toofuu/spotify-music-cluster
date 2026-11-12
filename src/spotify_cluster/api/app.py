@@ -9,14 +9,18 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from spotify_cluster.config import DEPLOYMENT_V1, F9
 from spotify_cluster.inference import InferenceService
+from spotify_cluster.research import load_comparison
+from spotify_cluster.visualization import load_visualization
 
 from .routes import cluster_info, model_info, router
 
 logger = logging.getLogger(__name__)
+_UNSET = object()
 
 
 def resolve_model_dir(model_dir: Path | None = None) -> Path:
@@ -40,16 +44,65 @@ def resolve_model_dir(model_dir: Path | None = None) -> Path:
     return root / "artifacts" / "deployment-v1"
 
 
+def resolve_optional_dir(
+    configured: Path | None | object, env_name: str, default_name: str
+) -> Path | None:
+    """Resolve an optional artifact directory; absence is not a readiness failure."""
+    if configured is None:
+        return None
+    if configured is _UNSET:
+        value = os.environ.get(env_name)
+        if value is not None:
+            configured = Path(value).expanduser()
+        else:
+            root = Path(__file__).resolve().parents[3]
+            if (
+                Path(__file__).resolve().parent.parent.parent.name != "src"
+                or not (root / "pyproject.toml").is_file()
+            ):
+                return None
+            return root / "artifacts" / default_name
+    path = Path(configured).expanduser()
+    if not path.is_absolute():
+        raise ValueError(f"{env_name}/artifact directory must be an absolute path")
+    return path.resolve()
+
+
+def _load_optional(
+    label: str,
+    loader,
+    configured: Path | None | object,
+    env_name: str,
+    default_name: str,
+):
+    try:
+        directory = resolve_optional_dir(configured, env_name, default_name)
+        if directory is None or not directory.is_dir():
+            return None, f"{label} artifact not provisioned"
+        return loader(directory), None
+    except Exception as exc:
+        logger.warning("%s artifact unavailable: %s", label, type(exc).__name__)
+        return None, f"{label} artifact failed verification; inspect server logs"
+
+
 def create_app(
     model_dir: Path | None = None,
     *,
     service_factory: Callable[[Path], InferenceService] | None = None,
+    visualization_dir: Path | None | object = _UNSET,
+    research_dir: Path | None | object = _UNSET,
 ) -> FastAPI:
     """An explicit factory seam allows software doubles; production has no fallback."""
 
     @asynccontextmanager
     async def lifespan(application: FastAPI):
         application.state.inference_service = None
+        application.state.visualization = None
+        application.state.visualization_reason = (
+            "Visualization artifact not provisioned"
+        )
+        application.state.research = None
+        application.state.research_reason = "Research comparison not provisioned"
         try:
             service = (service_factory or InferenceService)(
                 resolve_model_dir(model_dir)
@@ -72,10 +125,46 @@ def create_app(
                 "and integrity in server logs"
             ) from None
         application.state.inference_service = service
+        if metadata.get("dataset_sha256") and metadata.get("prepared_fingerprint"):
+            visualization, visualization_reason = _load_optional(
+                "Visualization",
+                lambda directory: load_visualization(
+                    directory,
+                    expected_model_id=metadata["model_id"],
+                    expected_dataset_sha256=metadata["dataset_sha256"],
+                    expected_fingerprint=metadata["prepared_fingerprint"],
+                ),
+                visualization_dir,
+                "SPOTIFY_VISUALIZATION_DIR",
+                "visualization-v1",
+            )
+            research, research_reason = _load_optional(
+                "Research comparison",
+                lambda directory: load_comparison(
+                    directory,
+                    expected_model_id=metadata["model_id"],
+                    expected_dataset_sha256=metadata["dataset_sha256"],
+                    expected_fingerprint=metadata["prepared_fingerprint"],
+                ),
+                research_dir,
+                "SPOTIFY_RESEARCH_DIR",
+                "research-v1",
+            )
+        else:
+            visualization, visualization_reason = None, "Visualization not applicable"
+            research, research_reason = None, "Research comparison not applicable"
+        application.state.visualization = visualization
+        application.state.visualization_reason = (
+            visualization_reason or "Visualization unavailable"
+        )
+        application.state.research = research
+        application.state.research_reason = research_reason or "Research unavailable"
         try:
             yield
         finally:
             application.state.inference_service = None
+            application.state.visualization = None
+            application.state.research = None
 
     application = FastAPI(
         title="Spotify Music Clustering API",
@@ -83,6 +172,24 @@ def create_app(
         lifespan=lifespan,
         debug=False,
     )
+    application.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=6)
+
+    @application.middleware("http")
+    async def limit_request_body(request: Request, call_next):
+        length = request.headers.get("content-length")
+        if length is not None:
+            try:
+                size = int(length)
+            except ValueError:
+                return JSONResponse(
+                    status_code=413, content={"detail": "Invalid content length"}
+                )
+            if size > 64 * 1024:
+                return JSONResponse(
+                    status_code=413, content={"detail": "Request body too large"}
+                )
+        return await call_next(request)
+
     application.include_router(router)
 
     @application.exception_handler(RequestValidationError)

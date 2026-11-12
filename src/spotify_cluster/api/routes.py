@@ -2,7 +2,14 @@
 
 from importlib.metadata import version
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query, Request
+
+from spotify_cluster.visualization import (
+    neighbours,
+    occupancy_view,
+    points_view,
+    public_meta,
+)
 
 from .dependencies import Service
 from .schemas import (
@@ -11,8 +18,13 @@ from .schemas import (
     Clusters,
     Health,
     ModelInfo,
+    Neighbours,
+    OccupancyView,
+    PointsView,
     Prediction,
+    ResearchResponse,
     Track,
+    VisualizationMetaResponse,
 )
 
 router = APIRouter(
@@ -104,3 +116,74 @@ def predict(track: Track, service: Service):
 def predict_batch(batch: BatchRequest, service: Service):
     results = service.predict_batch([track.model_dump() for track in batch.tracks])
     return BatchResponse(predictions=[prediction_info(result) for result in results])
+
+
+def _optional_artifact(request: Request, attribute: str, reason_attribute: str):
+    payload = getattr(request.app.state, attribute, None)
+    if payload is None:
+        raise HTTPException(
+            status_code=404,
+            detail=getattr(
+                request.app.state, reason_attribute, "Visualization data unavailable"
+            ),
+        )
+    return payload
+
+
+@router.get("/visualization/meta", response_model=VisualizationMetaResponse)
+def visualization_meta(request: Request):
+    payload = getattr(request.app.state, "visualization", None)
+    if payload is None:
+        return {
+            "available": False,
+            "reason": getattr(
+                request.app.state, "visualization_reason", "Visualization unavailable"
+            ),
+        }
+    return {"available": True, **public_meta(payload)}
+
+
+@router.get("/visualization/points", response_model=PointsView)
+def visualization_points(request: Request):
+    payload = _optional_artifact(request, "visualization", "visualization_reason")
+    try:
+        return points_view(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from None
+
+
+@router.get("/visualization/occupancy", response_model=OccupancyView)
+def visualization_occupancy(request: Request):
+    payload = _optional_artifact(request, "visualization", "visualization_reason")
+    return occupancy_view(payload)
+
+
+@router.get("/visualization/neighbors", response_model=Neighbours)
+def visualization_neighbors(
+    request: Request,
+    index: int = Query(ge=0),
+    k: int = Query(default=8, ge=1, le=12),
+):
+    payload = _optional_artifact(request, "visualization", "visualization_reason")
+    if payload.get("artifact_mode") != "points":
+        raise HTTPException(
+            status_code=404,
+            detail="Track-level neighbors are unavailable in aggregate mode",
+        )
+    try:
+        return neighbours(payload, index, k)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+
+
+@router.get("/research/comparison", response_model=ResearchResponse)
+def research_comparison(request: Request):
+    payload = getattr(request.app.state, "research", None)
+    if payload is None:
+        return {
+            "available": False,
+            "reason": getattr(
+                request.app.state, "research_reason", "Research comparison unavailable"
+            ),
+        }
+    return {"available": True, **payload}

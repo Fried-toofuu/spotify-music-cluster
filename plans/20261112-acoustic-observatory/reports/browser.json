@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "mode": "aggregate-public",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "overflow": {
+        "doc": 1440,
+        "win": 1440
+      }
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "overflow": {
+        "doc": 768,
+        "win": 768
+      }
+    },
+    {
+      "width": 375,
+      "height": 812,
+      "overflow": {
+        "doc": 375,
+        "win": 375
+      }
+    }
+  ],
+  "screenshots": [
+    "1440-overview.png",
+    "1440-explorer.png",
+    "1440-predict.png",
+    "1440-research.png",
+    "768-overview.png",
+    "768-explorer.png",
+    "768-predict.png",
+    "768-research.png",
+    "375-overview.png",
+    "375-explorer.png",
+    "375-predict.png",
+    "375-research.png"
+  ],
+  "checks": {
+    "explorer-1440": "PASS",
+    "predict-1440": "PASS",
+    "research-1440": "PASS",
+    "explorer-768": "PASS",
+    "predict-768": "PASS",
+    "research-768": "PASS",
+    "explorer-375": "PASS",
+    "predict-375": "PASS",
+    "research-375": "PASS",
+    "keyboard": "PASS",
+    "focus-outline": "PASS",
+    "reduced-motion": "PASS"
+  },
+  "errors": [],
+  "ports_released": {
+    "api": true,
+    "web": true
+  },
+  "private_features_logged": false
+}

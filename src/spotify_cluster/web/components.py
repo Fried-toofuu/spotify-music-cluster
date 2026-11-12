@@ -1,21 +1,38 @@
+# ruff: noqa: E501  (embedded HTML)
 """Presentation and event logic, independently testable without a Gradio server."""
 
 import html
 
-from spotify_cluster.config import F9
+import gradio as gr
+import pandas as pd
 
-from . import charts
+from spotify_cluster.config import DATASET_LICENSE, F9
+
+from . import charts, figures
 from .api_client import APIError, number
 
 EMPTY = "Refresh live data to load verified aggregates from the API."
 CAVEAT = (
-    "Clusters describe acoustic similarity; "
-    "they are not verified music genres or mood labels."
+    "Clusters describe acoustic similarity; they are not verified music genres or "
+    "mood labels. Centroid distances are not probabilities."
 )
 DISTANCE_NOTE = (
     "Smaller means closer to that centroid. Euclidean distances in fitted "
     "RobustScaler-transformed F9 space; distances are not probabilities."
 )
+AUDIO_NOTE = (
+    "This form reads nine numerical acoustic descriptors. It does not accept MP3 "
+    "files, audio uploads or Spotify URLs."
+)
+REPO = "https://github.com/Fried-toofuu/spotify-music-cluster"
+DOC_LINKS = {
+    "methodology": f"{REPO}/blob/main/docs/NOTEBOOK_AUDIT.md",
+    "architecture": f"{REPO}/blob/main/docs/ARCHITECTURE.md",
+    "model": f"{REPO}/blob/main/docs/MODEL_SERVING.md",
+    "visualization": f"{REPO}/blob/main/docs/VISUALIZATION.md",
+}
+DATASET_URL = DATASET_LICENSE["url"]
+SYNTHETIC_EXAMPLE = [0.72, 0.61, 0.38, 0.44, 118.5, -9.2, 0.05, 0.81, 0.13]
 HELP = {
     "acousticness": "Estimated acoustic character of the recording.",
     "danceability": "Rhythm-based suitability for dancing.",
@@ -27,6 +44,675 @@ HELP = {
     "instrumentalness": "Estimated absence of vocals; not a binary vocal detector.",
     "liveness": "Estimated presence of an audience in the recording.",
 }
+BRAND_MARK = """
+<svg class="obs-brand-mark" viewBox="0 0 40 40" role="img" aria-label="Acoustic Observatory mark">
+  <circle cx="20" cy="20" r="15.5" fill="none" stroke="#5eead4" stroke-opacity=".45"/>
+  <circle cx="20" cy="20" r="8.5" fill="none" stroke="#b7a4ff" stroke-opacity=".7"/>
+  <circle cx="20" cy="20" r="2.6" fill="#5eead4"/>
+  <circle cx="33.5" cy="12" r="1.8" fill="#f5c76a"/>
+</svg>
+"""
+HERO = f"""
+<div class="obs-hero">
+  <span class="obs-kicker">Unsupervised acoustic intelligence</span>
+  <h1>Music, mapped by sound.</h1>
+  <p>An acoustic observatory built from 89,741 canonical Spotify tracks. Explore
+  the fitted cluster space, inspect the descriptors behind the partition and test
+  your own nine-dimensional feature vector against the deployed model.</p>
+  <div class="obs-hero-meta">
+    <span class="obs-tag"><strong>F9</strong> acoustic descriptors</span>
+    <span class="obs-tag"><strong>RobustScaler</strong> geometry</span>
+    <span class="obs-tag"><strong>K-Means</strong> · K = 2</span>
+    <span class="obs-tag">Training-population study</span>
+    <span class="obs-tag">Historical equivalence <strong>NOT VERIFIED</strong></span>
+  </div>
+  <p class="obs-caveat"><strong>Read this first.</strong> {html.escape(CAVEAT)} The
+  dominant finding is scientific, not flattering: instrumentalness drives almost
+  all of this partition's scaled-space separation.</p>
+</div>
+"""
+
+
+def e(value):
+    return html.escape(str(value), quote=True)
+
+
+def count(value):
+    return f"{int(value):,}"
+
+
+def pct(value):
+    return f"{value:.2%}"
+
+
+def feature_value(value, feature):
+    return f"{value:,.1f}" if feature in ("tempo", "loudness") else f"{value:.4f}"
+
+
+def brandbar_html(*, ready=False, warning=False):
+    state = "Live verified aggregates" if ready else "Backend offline"
+    klass = "obs-live" if ready else "obs-live offline"
+    note = " · partial data" if warning and ready else ""
+    return f"""
+<div class="obs-brandbar">
+  <div class="obs-brand">{BRAND_MARK}
+    <div>
+      <div class="obs-brand-name">Acoustic Observatory</div>
+      <div class="obs-brand-sub">Spotify Music Clustering</div>
+    </div>
+  </div>
+  <div class="obs-brand-right">
+    <span class="{klass}">{state}{note}</span>
+    <span class="obs-tag">F9 · RobustScaler · K-Means</span>
+  </div>
+</div>
+"""
+
+
+def footer_html(model=None):
+    identity = ""
+    if model:
+        identity = (
+            f"<span>Model <code>{e(model['model_id'])}</code> · "
+            "Historical equivalence <strong>NOT VERIFIED</strong></span>"
+        )
+    return f"""
+<div class="obs-provenance">
+  <span>Dataset: <a href="{e(DATASET_URL)}" target="_blank" rel="noopener noreferrer">
+  Spotify Tracks Dataset (Maharshi Pandya)</a> · ODbL 1.0 · no track identifiers
+  distributed with the visualization sample.</span>
+  {identity}
+  <span><a href="{e(DOC_LINKS["methodology"])}" target="_blank" rel="noopener noreferrer">
+  Methodology</a> · <a href="{e(DOC_LINKS["visualization"])}" target="_blank"
+  rel="noopener noreferrer">Visualization pipeline</a></span>
+</div>
+"""
+
+
+def status_html(ready, message, warnings=None):
+    warnings = warnings or []
+    klass = "obs-live" if ready else "obs-live offline"
+    label = "API ready" if ready else "API unavailable"
+    extra = ""
+    if warnings:
+        extra = (
+            '<div class="obs-note" style="margin-top:8px">Partial data: '
+            + " ".join(e(item) for item in warnings)
+            + "</div>"
+        )
+    return (
+        f'<div class="obs-card tight"><span class="{klass}">{label}</span> '
+        f'<span class="obs-muted" style="margin-left:8px">{e(message)}</span>'
+        f"{extra}</div>"
+    )
+
+
+def summary(model):
+    """Compact metric strip retained for compatibility with older callers."""
+    metrics = [
+        (count(model["training_sample_count"]), "Training tracks"),
+        (str(model["number_of_clusters"]), "Acoustic clusters"),
+        (model["algorithm"], "Algorithm"),
+        (f"F{len(model['features'])}", "Representation"),
+        (model["scaler"], "Preprocessing"),
+    ]
+    return (
+        '<div class="metrics">'
+        + "".join(
+            f'<div class="metric"><strong>{e(value)}</strong>'
+            f"<span>{e(label)}</span></div>"
+            for value, label in metrics
+        )
+        + "</div>"
+    )
+
+
+def insight(profiles):
+    feature, share = charts.largest_contribution(profiles)
+    if feature is None:
+        return "### Separation diagnostic\nNot available from this API response."
+    return (
+        f"### {pct(share)} · {feature.title()}\n"
+        "Share of between-cluster sum of squares in fitted RobustScaler space. "
+        "This measures internal separation in the training population, "
+        "not prediction accuracy."
+    )
+
+
+def interpretation(data, selection):
+    profiles = charts.selected_profiles(data, selection)
+    lines = [
+        f"**Cluster {p['cluster_id']}** · {count(p['count'])} tracks · "
+        f"{pct(p['share'])} of training population · "
+        f"mean instrumentalness {p['mean']['instrumentalness']:.4f}."
+        for p in profiles
+    ]
+    selected = charts.selected_profiles(data)
+    a, b = selected
+    if a["mean"]["instrumentalness"] != b["mean"]["instrumentalness"]:
+        high, low = sorted(
+            (a, b), key=lambda p: p["mean"]["instrumentalness"], reverse=True
+        )
+        lines.append(
+            f"In this model, Cluster {high['cluster_id']} has higher mean "
+            f"instrumentalness than Cluster {low['cluster_id']}. "
+            "Label meanings belong to this fitted artifact "
+            "and can change after a refit."
+        )
+    return "\n\n".join(lines)
+
+
+def fact_sheet_html(model, profiles, viz_meta=None):
+    shares = [profiles["clusters"][str(i)]["share"] for i in (0, 1)]
+    counts = [profiles["clusters"][str(i)]["count"] for i in (0, 1)]
+    viz = "Not provisioned"
+    if viz_meta and viz_meta.get("available"):
+        if viz_meta.get("artifact_mode") == "points":
+            size = (viz_meta.get("sample") or {}).get("size", 0)
+            viz = f"PCA points · {count(size)} sampled tracks"
+        else:
+            viz = "Aggregate density only"
+    rows = [
+        ("Training population", f"{count(model['training_sample_count'])} tracks"),
+        ("Clusters", f"{model['number_of_clusters']} acoustic groups"),
+        ("Representation", f"F{len(model['features'])} · no modeling PCA"),
+        ("Preprocessing", "RobustScaler · median / IQR"),
+        ("Algorithm", "K-Means · K = 2"),
+        ("Deployment profile", e(model.get("deployment_profile", "not recorded"))),
+        ("Historical equivalence", "NOT VERIFIED"),
+        ("Visualization", e(viz)),
+    ]
+    body = "".join(
+        f"<div class='obs-fact'><dt>{e(a)}</dt><dd>{b}</dd></div>" for a, b in rows
+    )
+    return f"""
+<div class="obs-card">
+  <span class="obs-kicker">Model fact sheet</span>
+  <h3>One fitted acoustic partition</h3>
+  <dl class="obs-facts">{body}</dl>
+  <p class="obs-footnote">Cluster 0 holds {count(counts[0])} tracks ({pct(shares[0])});
+  Cluster 1 holds {count(counts[1])} tracks ({pct(shares[1])}). Labels are arbitrary
+  fitted groups, not genres.</p>
+</div>
+"""
+
+
+def finding_html(profiles):
+    feature, share = charts.largest_contribution(profiles)
+    if feature is None:
+        return (
+            '<div class="obs-card obs-finding"><span class="obs-kicker">Finding</span>'
+            '<p class="obs-muted">Separation diagnostics unavailable.</p></div>'
+        )
+    p0 = profiles["clusters"]["0"]["mean"][feature]
+    p1 = profiles["clusters"]["1"]["mean"][feature]
+    higher = 0 if p0 >= p1 else 1
+    label = (
+        "instrumental versus less-instrumental"
+        if feature == "instrumentalness"
+        else "strongly separated along this feature"
+    )
+    return f"""
+<div class="obs-card obs-finding">
+  <span class="obs-kicker">Dominant signal</span>
+  <div class="obs-big">{pct(share)} <small>of between-cluster SS</small></div>
+  <h3>{e(feature.title())}</h3>
+  <p class="obs-bar"><span style="width:{min(100, max(0, share * 100)):.1f}%"></span></p>
+  <p>The deployed partition is largely <strong>{e(label)}</strong>. Cluster
+  {higher} has the higher raw mean ({feature_value(max(p0, p1), feature)} vs
+  {feature_value(min(p0, p1), feature)}).</p>
+  <p class="obs-footnote">Between-cluster sum of squares in fitted RobustScaler
+  space. This is internal training-population separation, <strong>not prediction accuracy</strong>. Instrumentalness dominates because its interquartile range is
+  small, so RobustScaler amplifies that dimension.</p>
+</div>
+"""
+
+
+def population_html(profiles):
+    p0 = profiles["clusters"]["0"]
+    p1 = profiles["clusters"]["1"]
+    return f"""
+<div class="obs-card">
+  <span class="obs-kicker">Population balance</span>
+  <h3>Two acoustic groups</h3>
+  <div class="obs-split" role="img" aria-label="Cluster 0 {pct(p0["share"])}; Cluster 1 {pct(p1["share"])}">
+    <span class="c0" style="width:{p0["share"] * 100:.2f}%"></span>
+    <span class="c1" style="width:{p1["share"] * 100:.2f}%"></span>
+  </div>
+  <p><span class="obs-badge c0"><span class="swatch"></span>Cluster 0</span>
+  {count(p0["count"])} tracks · {pct(p0["share"])}</p>
+  <p><span class="obs-badge c1"><span class="swatch"></span>Cluster 1</span>
+  {count(p1["count"])} tracks · {pct(p1["share"])}</p>
+  <p class="obs-footnote">Stable cluster colors are used across every view.
+  Stratified Explorer samples do not preserve these proportions.</p>
+</div>
+"""
+
+
+def identity_html(model):
+    return f"""
+<div class="obs-card tight">
+  <span class="obs-kicker">Identity</span>
+  <p class="obs-mono" style="margin:6px 0 8px;overflow-wrap:anywhere">{e(model["model_id"])}</p>
+  <p class="obs-footnote">Deployment profile <code>{e(model.get("deployment_profile"))}</code>
+  · origin {e(model.get("model_origin"))} · no modeling PCA. This is a separately
+  approved deployment refit, not the historical final estimator. Historical
+  equivalence is <strong>NOT VERIFIED</strong>.</p>
+</div>
+"""
+
+
+def overview_note_html(viz_meta):
+    if not viz_meta or not viz_meta.get("available"):
+        reason = (viz_meta or {}).get(
+            "reason", "Visualization artifact not provisioned"
+        )
+        return (
+            '<div class="obs-card tight"><span class="obs-kicker">Visualization</span>'
+            f'<p class="obs-muted" style="margin:6px 0 0">{e(reason)}. '
+            "The profile tables and research sections remain available.</p></div>"
+        )
+    if viz_meta.get("artifact_mode") == "points":
+        return (
+            '<div class="obs-card tight"><span class="obs-kicker">Visualization</span>'
+            '<p class="obs-muted" style="margin:6px 0 0">Preview plots every fourth '
+            "point of the verified sample. Open the Cluster Explorer for all points, "
+            "nearest-neighbor inspection in fitted scaled F9 space and exact tables.</p></div>"
+        )
+    return (
+        '<div class="obs-card tight"><span class="obs-kicker">Visualization</span>'
+        '<p class="obs-muted" style="margin:6px 0 0">This deployment serves aggregate '
+        "density only: individual coordinates are not distributed. No aggregate cell "
+        "represents a single track.</p></div>"
+    )
+
+
+def explorer_disclosure_html(viz_meta):
+    if not viz_meta:
+        return EMPTY
+    if not viz_meta.get("available"):
+        return e(viz_meta.get("reason", "Visualization unavailable."))
+    if viz_meta.get("artifact_mode") == "points":
+        sample = viz_meta.get("sample") or {}
+        counts = sample.get("cluster_counts") or [0, 0]
+        return (
+            f"<strong>Plotted sample:</strong> {count(sample.get('size', 0))} tracks "
+            f"({count(counts[0])} / {count(counts[1])}); equal-cap stratified sample, "
+            "so plotted proportions are not population proportions. PCA is fitted on "
+            "the full training population for visualization only; assignments come from "
+            "the deployed F9 model. Sample points carry no track identifiers. "
+            "Coordinates are not model training coordinates."
+        )
+    return (
+        "Aggregate density only. Individual coordinates are not distributed; cells "
+        "contain at least the configured minimum number of training tracks and are "
+        "never labeled as individual tracks."
+    )
+
+
+def preview_payload(points_response, stride=4):
+    """A smaller, explicitly labeled preview of the same verified sample."""
+    if not points_response or points_response.get("view") != "points":
+        return points_response
+    source = points_response["points"]
+    points = {
+        key: list(source[key])[::stride]
+        for key in ("x", "y", "z", "cluster", "raw_features")
+    }
+    sample = dict(points_response["sample"])
+    sample["size"] = len(points["x"])
+    sample["cluster_counts"] = [
+        points["cluster"].count(0),
+        points["cluster"].count(1),
+    ]
+    sample["policy"] = (
+        f"Overview preview: every {stride}th point of the verified stratified sample"
+    )
+    sample["proportions_disclosure"] = (
+        "Preview plotted proportions are not population proportions"
+    )
+    result = dict(points_response)
+    result["points"] = points
+    result["sample"] = sample
+    return result
+
+
+def _meter_rows(distances, nearest):
+    top = max(distances) or 1
+    rows = []
+    for label, value in enumerate(distances):
+        width = max(2.0, 100 * value / top)
+        klass = f"c{label}"
+        rows.append(
+            f'<div class="obs-meter-row"><span>{e(charts.cluster_name(label))}</span>'
+            f'<span class="track {klass}"><span style="width:{width:.1f}%"></span></span>'
+            f'<span class="value">{value:.4f}<small>'
+            f"{'nearest' if label == nearest else 'distance'}</small></span></div>"
+        )
+    return "".join(rows)
+
+
+def _distinguishing(profiles):
+    if not profiles:
+        return []
+    a, b = profiles["clusters"]["0"], profiles["clusters"]["1"]
+    ranked = []
+    for feature in F9:
+        left, right = a["mean"][feature], b["mean"][feature]
+        scale = max(abs(left), abs(right), 1e-9)
+        ranked.append((abs(left - right) / scale, feature, left, right))
+    ranked.sort(reverse=True)
+    return ranked[:2]
+
+
+def prediction_card_html(result, profiles=None):
+    label = result["cluster_id"]
+    profile = result["profile"]
+    other = None
+    if profiles and str(1 - label) in profiles.get("clusters", {}):
+        other = profiles["clusters"][str(1 - label)]
+    meters = _meter_rows(result["distances"], label)
+    comparisons = ""
+    if other:
+        parts = []
+        for _score, feature, _left, _right in _distinguishing(profiles):
+            current_value = profile["mean"][feature]
+            other_value = other["mean"][feature]
+            direction = "higher" if current_value > other_value else "lower"
+            parts.append(
+                f"mean {e(feature)} "
+                f"{feature_value(current_value, feature)} vs "
+                f"{feature_value(other_value, feature)} in Cluster {1 - label} "
+                f"({direction})"
+            )
+        comparisons = (
+            '<p class="obs-footnote">Current cluster profile: '
+            + "; ".join(parts)
+            + ". These are raw-unit training aggregates, not a musical genre.</p>"
+        )
+    return f"""
+<div class="obs-card obs-prediction c{label}">
+  <div class="obs-result-head">
+    <div>
+      <span class="obs-kicker">Nearest centroid</span>
+      <h2>Cluster {label}</h2>
+      <div class="obs-result-meta">{count(profile["count"])} training tracks ·
+      {pct(profile["share"])} of the training population</div>
+    </div>
+    <span class="obs-verdict">Nearest wins · not a probability</span>
+  </div>
+  <div class="obs-meter">{meters}</div>
+  <p class="obs-footnote">The smaller Euclidean distance determines the assignment.
+  Distances are not confidence scores and are not converted to probabilities.</p>
+  {comparisons}
+  <details class="obs-footnote" style="margin-top:10px">
+    <summary>Model identity and scientific limits</summary>
+    <p class="obs-mono" style="overflow-wrap:anywhere">{e(result["model_id"])}</p>
+    <p>Deployment profile {e(result.get("deployment_profile"))} · historical
+    equivalence <strong>NOT VERIFIED</strong>. The historical Holdout remains closed;
+    no deployment Holdout score is claimed.</p>
+    <p>{e(result["limitation"])}</p>
+  </details>
+</div>
+"""
+
+
+def prediction_empty_html():
+    return (
+        '<div class="obs-card"><span class="obs-kicker">Result</span>'
+        "<h3>Awaiting a feature vector</h3>"
+        '<p class="obs-muted">Enter nine acoustic descriptors and submit. The server '
+        "performs scaling and inference; the browser never assigns the cluster.</p></div>"
+    )
+
+
+def error_card_html(message):
+    return (
+        '<div class="obs-card"><span class="obs-kicker">Could not complete</span>'
+        f'<p class="obs-muted" style="margin:6px 0 0">{e(message)}</p></div>'
+    )
+
+
+def selection_html(result):
+    point = result["point"]
+    feature_items = "".join(
+        f"<div class='obs-feature'><dt>{e(name)}</dt>"
+        f"<dd>{feature_value(value, name)}</dd></div>"
+        for name, value in point["features"].items()
+    )
+    rows = "".join(
+        f"<tr><td>#{entry['index']}</td>"
+        f"<td><span class='obs-badge c{entry['cluster']}'>"
+        f"<span class='swatch'></span>Cluster {entry['cluster']}</span></td>"
+        f"<td>{feature_value(entry['features']['instrumentalness'], 'instrumentalness')}</td>"
+        f"<td>{feature_value(entry['features']['energy'], 'energy')}</td>"
+        f"<td>{entry['distance']:.4f}</td></tr>"
+        for entry in result["neighbors"]
+    )
+    coordinates = ", ".join(f"{value:+.2f}" for value in point["coordinates"])
+    return f"""
+<div class="obs-card">
+  <span class="obs-kicker">Selected sample</span>
+  <h3>Sample #{point["index"]} · Cluster {point["cluster"]}</h3>
+  <p class="obs-footnote">PCA coordinates ({coordinates}) are visualization
+  coordinates, not model training distances. No track identifiers are stored.</p>
+  <dl class="obs-feature-grid">{feature_items}</dl>
+  <h4 style="margin:14px 0 4px">Nearest sampled tracks</h4>
+  <p class="obs-footnote" style="margin:0 0 8px">Computed in the fitted
+  RobustScaler F9 space, not screen distance. Distances are not probabilities.</p>
+  <table class="obs-neighbors">
+    <thead><tr><th>Sample</th><th>Cluster</th><th>Instr.</th><th>Energy</th><th>Distance</th></tr></thead>
+    <tbody>{rows}</tbody>
+  </table>
+</div>
+"""
+
+
+def selection_placeholder_html(viz_meta=None):
+    if (
+        viz_meta
+        and viz_meta.get("available")
+        and viz_meta.get("artifact_mode") == "aggregate"
+    ):
+        return (
+            '<div class="obs-card"><span class="obs-kicker">Sample inspector</span>'
+            '<p class="obs-muted">Aggregate mode does not expose individual points. '
+            "Open the density view or use the profile tables below.</p></div>"
+        )
+    return (
+        '<div class="obs-card"><span class="obs-kicker">Sample inspector</span>'
+        '<p class="obs-muted">Select a point in the map to inspect its permitted '
+        "acoustic descriptors and nearest sampled tracks.</p></div>"
+    )
+
+
+def research_narrative_html(research, profiles, viz_meta=None):
+    feature, share = charts.largest_contribution(profiles)
+    feature = feature or "instrumentalness"
+    share = share or 0.0
+    p0 = profiles["clusters"]["0"]["mean"]
+    p1 = profiles["clusters"]["1"]["mean"]
+    if research and research.get("available"):
+        f5 = research["comparisons"]["f5_kmeans_vs_deployment_f9_kmeans"]
+        gmm = research["comparisons"]["f9_kmeans_vs_f9_gmm"]
+        comparison = f"""
+<div class="obs-grid-2 obs-section">
+  <div class="obs-card">
+    <span class="obs-kicker">Controlled comparison · identical rows</span>
+    <h3>F5 StandardScaler vs deployed F9 RobustScaler</h3>
+    <div class="obs-big" style="color:var(--obs-teal)">{f5["ari"]:+.3f} <small>Adjusted Rand Index</small></div>
+    <p>The F5 K-Means partition and the deployed F9 K-Means partition agree at
+    ARI {f5["ari"]:+.3f} on all {count(research["population"]["training_sample_count"])}
+    identical tracks. ARI measures partition agreement, not quality, and no
+    Silhouette values are compared across different feature geometries.</p>
+    <p class="obs-footnote">F5 recipe: StandardScaler + K-Means (k-means++, n_init=20,
+    max_iter=300, seed 42). This is a new development computation, not a claim to
+    reproduce the archived historical F5 baseline.</p>
+  </div>
+  <div class="obs-card">
+    <span class="obs-kicker">Hard vs soft assignments</span>
+    <h3>K-Means vs a Gaussian mixture</h3>
+    <div class="obs-big" style="color:var(--obs-violet)">{gmm["ari"]:+.3f} <small>ARI between hard partitions</small></div>
+    <p>On the identical fitted RobustScaler F9 representation, a diagonal-covariance
+    GMM reaches mean maximum responsibility
+    {gmm["mean_max_responsibility"]:.3f} and mean entropy
+    {gmm["mean_entropy_nats"]:.3f} nats. Responsibilities are posterior component
+    weights; the hard GMM partition uses argmax. K-Means instead minimizes squared
+    centroid distance.</p>
+    <p class="obs-footnote">Low agreement is an informative result: the two models
+    answer different questions. Neither is selected by this comparison.</p>
+  </div>
+</div>
+"""
+    else:
+        reason = (research or {}).get(
+            "reason", "Research comparison artifact not provisioned"
+        )
+        comparison = f"""
+<div class="obs-card obs-section"><span class="obs-kicker">Controlled comparison</span>
+<h3>Comparison artifact unavailable</h3>
+<p class="obs-muted">{e(reason)}. The deployment evidence above remains available;
+no comparison metric is fabricated.</p></div>
+"""
+    archived = (research or {}).get("archived_evidence")
+    if archived:
+        archived_block = f"""
+<table class="obs-neighbors" style="margin-top:10px">
+  <thead><tr><th>Archived historical evidence</th><th>Value</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>Holdout Silhouette</td><td>{archived["holdout_silhouette"]:.6f}</td>
+        <td>Archived · one-time · closed</td></tr>
+    <tr><td>Holdout Davies–Bouldin</td><td>{archived["holdout_davies_bouldin"]:.6f}</td>
+        <td>Archived · one-time · closed</td></tr>
+    <tr><td>Holdout Calinski–Harabasz</td><td>{archived["holdout_calinski_harabasz"]:,.3f}</td>
+        <td>Archived · one-time · closed</td></tr>
+  </tbody>
+</table>
+<p class="obs-footnote" style="margin-top:8px">{e(archived["warning"])}</p>
+"""
+    else:
+        archived_block = (
+            '<p class="obs-muted">Archived historical evidence is not available from '
+            "this backend. The Holdout remains closed; no value is invented.</p>"
+        )
+    return f"""
+<div id="research-overview">
+<span class="obs-kicker">Research &amp; methodology</span>
+<h2>What this partition can — and cannot — say</h2>
+<p>This is an <strong>unsupervised</strong> study. No genre label is used as a
+target, so there is no accuracy score to report. The model groups numerical
+acoustic descriptors by similarity; the meaning of a cluster comes from the
+current artifact's raw-unit profiles, not from its numeric label.</p>
+
+<div class="obs-grid-2 obs-section">
+  <div class="obs-card">
+    <span class="obs-kicker">01 · Data</span>
+    <h3>One authorized snapshot</h3>
+    <p>The Kaggle Spotify Tracks Dataset (Maharshi Pandya) supplies 114,000 raw
+    rows. Track-ID deduplication leaves <strong>89,741 canonical tracks</strong>
+    across 114 reported genres. Genre and text metadata are kept out of the F9
+    modeling matrix. The CSV is verified by SHA-256 before any offline artifact
+    is prepared; the raw file is never served by this application.</p>
+    <p class="obs-footnote">Dataset license: ODbL 1.0. Track-level derived
+    coordinates remain private by default; a public deployment uses the
+    aggregate-only artifact unless redistribution is explicitly approved.</p>
+  </div>
+  <div class="obs-card">
+    <span class="obs-kicker">02 · Representation</span>
+    <h3>F9, scaled, without PCA</h3>
+    <p><code>acousticness, danceability, energy, valence, tempo, loudness,
+    speechiness, instrumentalness, liveness</code> in that exact order. RobustScaler
+    centers each feature at its median and scales by its interquartile range. The
+    fitted scaler and K-Means centroids remain paired in one Pipeline; PCA is
+    visualisation only and is never used to fit or assign clusters.</p>
+    <p class="obs-footnote">The historical notebook also studied an F5 baseline,
+    StandardScaler, PCA projections and GMM candidates.</p>
+  </div>
+</div>
+
+<div class="obs-card obs-section">
+  <span class="obs-kicker">03 · Dominant finding</span>
+  <h3>{e(feature.title())} drives {share:.2%} of the between-cluster separation</h3>
+  <p>Cluster 0's raw mean is {feature_value(p0[feature], feature)}; Cluster 1's is
+  {feature_value(p1[feature], feature)}. Because instrumentalness has a small
+  interquartile range, RobustScaler amplifies it, so the partition is largely an
+  <strong>instrumental versus less-instrumental</strong> split. That is a
+  scientifically inconvenient but honest reading: the selected model is stable yet
+  close to a one-feature partition. It is not a genre classifier and its separation
+  diagnostic is not accuracy.</p>
+  <p class="obs-footnote">Share of between-cluster sum of squares in fitted
+  RobustScaler space, computed from this artifact's training assignments.</p>
+</div>
+
+<div class="obs-card obs-section">
+  <span class="obs-kicker">04 · Historical evidence vs deployed model</span>
+  <h3>Two identities, never one score</h3>
+  <p>The archived FULL research evidence below belongs to the <em>historical</em>
+  frozen F9/Robust/K2 estimator and its one-time Holdout. The deployed model is a
+  separately approved refit on all canonical tracks. It is <strong>not verified
+  equivalent</strong> to the historical estimator, and the historical Holdout is
+  closed: it was not reopened, rerun or extended for this application.</p>
+  {archived_block}
+  <p class="obs-footnote" style="margin-top:10px">Deployment-v1 training
+  population: {count(profiles["clusters"]["0"]["count"] + profiles["clusters"]["1"]["count"])}
+  tracks, cluster counts {count(profiles["clusters"]["0"]["count"])} /
+  {count(profiles["clusters"]["1"]["count"])}. A full-population refit has no fresh
+  independent Holdout score.</p>
+</div>
+
+{comparison}
+
+<div class="obs-card obs-section">
+  <span class="obs-kicker">05 · Limits and reproducibility</span>
+  <h3>What not to conclude</h3>
+  <ul>
+    <li>Cluster IDs are arbitrary and can swap after a refit; use the current
+    profiles to interpret them.</li>
+    <li>Descriptions are acoustic, not perceptual or cultural; no listening study
+    established validity.</li>
+    <li>Centroid distances are Euclidean distances in fitted scaled space, not
+    probabilities or confidence scores.</li>
+    <li>Track-disjoint cohorts are not artist-disjoint; the training population is
+    not an independent evaluation.</li>
+    <li>The archived historical metrics cannot be attached to deployment
+    predictions. Historical equivalence remains <strong>NOT VERIFIED</strong>.</li>
+  </ul>
+  <p class="obs-footnote">Methodology:
+  <a href="{e(DOC_LINKS["methodology"])}" target="_blank" rel="noopener noreferrer">Notebook audit</a>
+  · <a href="{e(DOC_LINKS["architecture"])}" target="_blank" rel="noopener noreferrer">Architecture</a>
+  · <a href="{e(DOC_LINKS["model"])}" target="_blank" rel="noopener noreferrer">Model serving</a>
+  · <a href="{e(DOC_LINKS["visualization"])}" target="_blank" rel="noopener noreferrer">Visualization pipeline</a>.</p>
+</div>
+</div>
+"""
+
+
+def archived_table(research):
+    if not research or not research.get("available"):
+        return pd.DataFrame(columns=["Evidence", "Metric", "Value", "Status"])
+    archived = research["archived_evidence"]
+    return pd.DataFrame(
+        [
+            {
+                "Evidence": archived["label"],
+                "Metric": "Holdout Silhouette",
+                "Value": archived["holdout_silhouette"],
+                "Status": "Archived · one-time · closed",
+            },
+            {
+                "Evidence": archived["label"],
+                "Metric": "Holdout Davies–Bouldin",
+                "Value": archived["holdout_davies_bouldin"],
+                "Status": "Archived · one-time · closed",
+            },
+            {
+                "Evidence": archived["label"],
+                "Metric": "Holdout Calinski–Harabasz",
+                "Value": archived["holdout_calinski_harabasz"],
+                "Status": "Archived · one-time · closed",
+            },
+        ]
+    )
 
 
 def payload(values):
@@ -44,90 +730,9 @@ def payload(values):
     return result
 
 
-def summary(model):
-    metrics = [
-        (f"{model['training_sample_count']:,}", "Training tracks"),
-        (str(model["number_of_clusters"]), "Acoustic clusters"),
-        (model["algorithm"], "Algorithm"),
-        (f"F{len(model['features'])}", "Representation"),
-        (model["scaler"], "Preprocessing"),
-    ]
-    return (
-        '<div class="metrics">'
-        + "".join(
-            f'<div class="metric"><strong>{html.escape(value)}</strong>'
-            f"<span>{label}</span></div>"
-            for value, label in metrics
-        )
-        + "</div>"
-    )
-
-
-def insight(profiles):
-    contributions = profiles.get("feature_contributions")
-    if not contributions:
-        return "### Separation diagnostic\nNot available from this API response."
-    shares = contributions["shares"]
-    dominant = max(F9, key=lambda f: shares[f])
-    return (
-        f"### {shares[dominant]:.3%} · {dominant.title()}\n"
-        "Share of between-cluster sum of squares in fitted RobustScaler space. "
-        "This measures internal separation in the training population, "
-        "not prediction accuracy."
-    )
-
-
-def interpretation(data, selection):
-    profiles = charts.selected_profiles(data, selection)
-    lines = [
-        f"**Cluster {p['cluster_id']}** · {p['count']:,} tracks · {p['share']:.2%} "
-        "of training population · "
-        f"mean instrumentalness {p['mean']['instrumentalness']:.4f}."
-        for p in profiles
-    ]
-    a, b = charts.selected_profiles(data)
-    if a["mean"]["instrumentalness"] != b["mean"]["instrumentalness"]:
-        high, low = sorted(
-            (a, b), key=lambda p: p["mean"]["instrumentalness"], reverse=True
-        )
-        lines.append(
-            f"In this model, Cluster {high['cluster_id']} has higher mean "
-            f"instrumentalness than Cluster {low['cluster_id']}. "
-            "Label meanings belong to this fitted artifact "
-            "and can change after a refit."
-        )
-    return "\n\n".join(lines)
-
-
-def prediction_text(result):
-    p = result["profile"]
-    return (
-        f"## Cluster {result['cluster_id']}\n"
-        "Current cluster mean instrumentalness: "
-        f"**{p['mean']['instrumentalness']:.4f}**. "
-        f"Mean energy: **{p['mean']['energy']:.4f}**. "
-        f"Mean valence: **{p['mean']['valence']:.4f}**.\n\n"
-        f"**{p['count']:,} tracks · {p['share']:.2%}** of training population. "
-        "These aggregate descriptors do not establish a genre or listening mood.\n\n"
-        f"Model: `{result['model_id']}`\n\n"
-        "Historical equivalence: **NOT VERIFIED**."
-    )
-
-
 class Handlers:
     def __init__(self, client):
         self.client = client
-
-    def explore(self, data, selection, feature, statistic):
-        if not data:
-            return EMPTY, None, None, None
-        profiles = data["profiles"]
-        return (
-            interpretation(profiles, selection),
-            charts.comparison_figure(profiles, feature, statistic, selection),
-            charts.profile_table(profiles, statistic, selection),
-            charts.detail_table(profiles, selection),
-        )
 
     def refresh(self):
         try:
@@ -140,27 +745,150 @@ class Handlers:
                 raise APIError(
                     "API model and profiles disagree. Refresh after backend restart."
                 )
-            data = {"model": model, "profiles": profiles}
-            return (
-                data,
-                "**API ready** · Live verified aggregates loaded.",
-                summary(model),
-                charts.distribution_figure(profiles),
-                charts.distribution(profiles).round(3),
-                insight(profiles),
-                f"Model: `{model['model_id']}` · "
-                "Historical equivalence: **NOT VERIFIED**",
-            )
         except APIError as exc:
-            return (
-                None,
-                str(exc),
-                "",
-                None,
-                None,
-                EMPTY,
-                "No live model metadata loaded.",
-            )
+            return self._offline(str(exc))
+        warnings = []
+        viz_meta = None
+        viz_points = None
+        viz_density = None
+        try:
+            viz_meta = self.client.visualization_meta()
+            if viz_meta.get("available") is False:
+                warnings.append(viz_meta["reason"])
+            else:
+                if viz_meta["model_id"] != model["model_id"]:
+                    raise APIError(
+                        "Visualization belongs to another model. Refresh after restart."
+                    )
+                if viz_meta["views"]["points"]:
+                    viz_points = self.client.visualization_points()
+                    if viz_points["model_id"] != model["model_id"]:
+                        raise APIError("Visualization model identity mismatch.")
+                else:
+                    viz_density = self.client.visualization_occupancy()
+                    if viz_density["model_id"] != model["model_id"]:
+                        raise APIError("Visualization model identity mismatch.")
+        except APIError as exc:
+            viz_meta = {"available": False, "reason": str(exc)}
+            viz_points = None
+            viz_density = None
+            warnings.append(str(exc))
+        try:
+            research = self.client.research()
+            if research.get("available") and research["model_id"] != model["model_id"]:
+                research = {
+                    "available": False,
+                    "reason": "Research comparison belongs to another model.",
+                }
+        except APIError as exc:
+            research = {"available": False, "reason": str(exc)}
+        data = {
+            "model": model,
+            "profiles": profiles,
+            "viz_meta": viz_meta,
+            "viz_points": viz_points,
+            "viz_density": viz_density,
+            "research": research,
+        }
+        overview = preview_payload(viz_points) if viz_points else viz_density
+        explorer = viz_points or viz_density
+        handoff = "Live verified aggregates loaded."
+        if warnings:
+            handoff += " Optional visualization data is partially unavailable."
+        comparison_figure = (
+            figures.research_figure(research)
+            if research.get("available")
+            else figures.empty_figure("Research comparison artifact not provisioned.")
+        )
+        return (
+            data,
+            brandbar_html(ready=True, warning=bool(warnings)),
+            status_html(True, handoff, warnings),
+            overview,
+            overview_note_html(viz_meta),
+            fact_sheet_html(model, profiles, viz_meta),
+            finding_html(profiles),
+            population_html(profiles),
+            identity_html(model),
+            explorer_disclosure_html(viz_meta),
+            explorer,
+            selection_placeholder_html(viz_meta),
+            research_narrative_html(research, profiles, viz_meta),
+            figures.contributions_figure(profiles),
+            comparison_figure,
+            archived_table(research),
+        )
+
+    def _offline(self, message):
+        empty_profiles = {
+            "clusters": {
+                "0": {"count": 0, "share": 0, "mean": dict.fromkeys(F9, 0)},
+                "1": {"count": 0, "share": 0, "mean": dict.fromkeys(F9, 0)},
+            }
+        }
+        return (
+            None,
+            brandbar_html(ready=False),
+            status_html(False, message),
+            None,
+            '<div class="obs-card tight"><span class="obs-kicker">Visualization</span>'
+            '<p class="obs-muted" style="margin:6px 0 0">Start the FastAPI backend and '
+            "refresh to load verified aggregates.</p></div>",
+            '<div class="obs-card"><span class="obs-kicker">Model fact sheet</span>'
+            f'<p class="obs-muted">{e(message)}</p></div>',
+            '<div class="obs-card obs-finding"><span class="obs-kicker">Finding</span>'
+            '<p class="obs-muted">Live separation diagnostics are unavailable.</p></div>',
+            '<div class="obs-card"><span class="obs-kicker">Population</span>'
+            '<p class="obs-muted">Live cluster shares are unavailable.</p></div>',
+            "",
+            EMPTY,
+            None,
+            selection_placeholder_html(None),
+            research_narrative_html(
+                {"available": False, "reason": "Backend offline"}, empty_profiles
+            ),
+            figures.empty_figure("Backend offline."),
+            figures.empty_figure("Backend offline."),
+            archived_table(None),
+        )
+
+    def explore(self, data, selection, feature, statistic):
+        if not data:
+            return EMPTY, figures.empty_figure("Refresh live data first."), None, None
+        profiles = data["profiles"]
+        return (
+            interpretation(profiles, selection),
+            figures.comparison_figure(profiles, feature, statistic, selection),
+            charts.profile_table(profiles, statistic, selection),
+            charts.detail_table(profiles, selection),
+        )
+
+    def load_explorer(self, data):
+        if not data:
+            return None, EMPTY, selection_placeholder_html(None)
+        viz_meta = data.get("viz_meta")
+        payload_value = data.get("viz_points") or data.get("viz_density")
+        return (
+            payload_value,
+            explorer_disclosure_html(viz_meta),
+            selection_placeholder_html(viz_meta),
+        )
+
+    def explorer_select(self, data, evt: gr.EventData):
+        if not data or not data.get("viz_points"):
+            return selection_placeholder_html((data or {}).get("viz_meta"))
+        index = getattr(evt, "index", None)
+        if type(index) is not int or index < 0:
+            return error_card_html("The selected point is outside the sample.")
+        try:
+            result = self.client.visualization_neighbors(index, 8)
+            if result["model_id"] != data["model"]["model_id"]:
+                raise APIError(
+                    "The backend model changed. Refresh live data before inspecting."
+                )
+            return selection_html(result)
+        except (APIError, ValueError) as exc:
+            return error_card_html(str(exc))
 
     def predict(self, data, *values):
         try:
@@ -171,53 +899,17 @@ class Handlers:
                 )
             return (
                 "**Prediction received from the API.**",
-                prediction_text(result),
-                charts.distances_figure(result),
+                prediction_card_html(result, (data or {}).get("profiles")),
+                figures.distances_figure(result),
                 charts.distances(result),
             )
         except (APIError, ValueError) as exc:
-            return str(exc), "No prediction available.", None, None
+            return (
+                str(exc),
+                error_card_html(str(exc)),
+                None,
+                None,
+            )
 
-
-METHODOLOGY = """
-## Research & Methodology
-### Why cluster music?
-Unsupervised clustering explores acoustic relationships without using genre labels
-as targets. The live interface groups numerical acoustic descriptors, not audio files.
-
-### Dataset and preparation
-The Kaggle Spotify Tracks Dataset (Maharshi Pandya) contains 114,000 original rows.
-Track-ID deduplication yields 89,741 canonical unique tracks in the authorized snapshot.
-Numeric features are checked for finite values and valid domains. Text and genre
-metadata do not enter the nine-feature modeling matrix.
-
-**Exact F9 order:** acousticness, danceability, energy, valence, tempo, loudness,
-speechiness, instrumentalness, liveness. RobustScaler centers each feature using its
-median and scales by its interquartile range; the fitted scaler and centroids stay
-paired in one Pipeline.
-
-### Research comparisons and the deployed model
-The final notebook studies K-Means and Gaussian Mixture Models, F5 and F9 feature
-representations, scaling comparisons and PCA exploration. The deployed model is a
-separately authorized **deployment-v1 refit: K-Means, K=2, F9, RobustScaler, no PCA**,
-trained on all 89,741 canonical tracks.
-
-Deployment-v1 explicitly adopts k-means++ initialization, n_init=20, max_iter=300,
-tol=0.0001, Lloyd algorithm and seed 42. These deployment settings do not establish
-the historical final estimator's undocumented optimizer settings.
-
-### Archived evidence
-The notebook records a historical FULL candidate study and a one-time Holdout
-evaluation. Those are archived research evidence, not a new evaluation of deployment-v1.
-The Holdout remains closed. **Historical model equivalence is NOT VERIFIED.**
-
-### What the results can and cannot say
-- Cluster IDs are arbitrary; use the current artifact's profiles to interpret them.
-- Instrumentalness dominates the current scaled-space separation diagnostic.
-- There is no verified genre accuracy, calibrated probability or fresh independent
-  deployment Holdout score. Centroid distances are not confidence percentages.
-- This app accepts numerical acoustic features only; MP3 analysis, Spotify URLs and
-  fabricated music recommendations are unsupported.
-- The API exposes aggregate statistics, not verified per-track PCA or t-SNE
-  coordinates. Those scatterplots are deliberately omitted.
-"""
+    def example(self):
+        return tuple(SYNTHETIC_EXAMPLE)

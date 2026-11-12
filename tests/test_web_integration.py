@@ -13,17 +13,24 @@ def test_real_gradio_http(request):
         pytest.skip("Private deployment HTTP check requires --run-real-web")
     root = Path(__file__).resolve().parents[1]
     result = subprocess.run(
-        [sys.executable, str(root / "plans/20261112-gradio-web/verify-http.py")],
+        [
+            sys.executable,
+            str(root / "plans/20261112-acoustic-observatory/verify-live.py"),
+        ],
         cwd=root,
         capture_output=True,
         text=True,
-        timeout=90,
+        timeout=360,
     )
     assert result.returncode == 0, result.stderr
     evidence = json.loads(
-        (root / "plans/20261112-gradio-web/reports/http-smoke.json").read_text()
+        (root / "plans/20261112-acoustic-observatory/reports/browser.json").read_text()
     )
     assert evidence["status"] == "PASS"
-    assert evidence["private_sample_agreement"] and evidence["gradio_http_prediction"]
-    assert evidence["offline_feedback"]
+    assert len(evidence["viewports"]) == 3
+    assert evidence["checks"]["keyboard"] == "PASS"
+    assert evidence["checks"]["focus-outline"] == "PASS"
+    assert evidence["checks"]["reduced-motion"] == "PASS"
+    assert evidence["errors"] == []
+    assert evidence["private_features_logged"] is False
     assert all(evidence["ports_released"].values())

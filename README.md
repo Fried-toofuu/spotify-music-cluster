@@ -1,90 +1,157 @@
-# Spotify Music Clustering foundation
+# Acoustic Observatory · Spotify Music Clustering
 
-A new standalone Python package for acoustic track clustering, derived solely
-from the supplied final research notebook. A local FastAPI backend serves the
-verified deployment model; a four-tab Gradio app calls it through HTTP. No connection to the abandoned
-repository exists.
+An interactive scientific music-intelligence application that turns unsupervised
+acoustic clustering research into an explorable observatory. One FastAPI backend
+serves the trusted deployment model and versioned, checksummed visualization
+artifacts; one Gradio frontend renders the experience with Plotly and an optional
+Three.js constellation.
 
-The explicitly authorized `deployment-v1` recipe trains a new
-F9/RobustScaler/K-Means/K2 model on all 89741 canonical tracks. Its profile ID is
-`spotify-f9-robust-kmeans-k2-v1`. Historical final-estimator equivalence remains
-**NOT VERIFIED**: the notebook does not fully document that estimator's optimizer
-settings. See the [notebook audit](docs/NOTEBOOK_AUDIT.md) for the distinction.
+![Acoustic Observatory overview](docs/screenshots/overview-1440.png)
 
-## Environment and checks
+The screenshots in this repository use the **aggregate public** visualization
+mode. The private per-track points mode is available locally and was tested in a
+real browser; its coordinates are not committed because per-track derived data
+requires separate redistribution approval.
 
-Use Python 3.12, venv and pip. Dependency declarations are in
-[pyproject.toml](pyproject.toml); they intentionally preserve research Pandas and
-scikit-learn versions. The stored notebook output reports Python 3.13.18 and
-NumPy 2.4.6; this project targets Python 3.12 and NumPy 2.2.6. Exact historical
-equivalence remains unverified.
+## What the application does
 
-Windows PowerShell:
+- **Overview:** a research-oriented landing experience with an interactive
+  cluster-space preview, a compact model fact sheet, the dominant
+  instrumentalness finding and clear navigation.
+- **Cluster Explorer:** a genuine PCA 2D/3D Plotly Explorer with zoom/pan/rotate,
+  hover, cluster filtering, point selection, nearest sampled tracks in fitted
+  scaled F9 space, a log-scaled aggregate density view and an optional GPU
+  constellation view. The Plotly views are the scientific primary.
+- **Predict Cluster:** grouped nine-descriptor form, real FastAPI inference, a
+  prominent result card with both centroid distances, the current cluster profile
+  and explicit "not a probability" language. Invalid input clears stale output.
+- **Research & Methodology:** authorized data and preparation, F9/Robust/K-Means,
+  archived historical evidence clearly separated from deployment results,
+  controlled comparisons, interactive figures and explicit limitations.
+
+## Scientific boundaries
+
+- Only the Maharshi Pandya Spotify Tracks Dataset snapshot with SHA-256
+  `b202fa49909b2d5cef71a04b1d21243cfeb36414535f2ca9272aa646721177bd` is
+  authorized: 114,000 raw rows → **89,741 canonical tracks**.
+- The deployed model is the approved **deployment-v1** F9/RobustScaler/K-Means/K2
+  refit (`spotify-f9-robust-kmeans-k2-v1`). It is a separate identity from the
+  historical final estimator. Historical equivalence is **NOT VERIFIED**.
+- The historical Holdout remains closed. It was not reopened, rerun or extended.
+  Historical metrics are labeled archived evidence only and are never attached to
+  deployment predictions.
+- Clusters are acoustic groups, not genres or listener moods. Centroid distances
+  are Euclidean distances in fitted scaled space, not probabilities. The
+  instrumentalness dominance (97.30% of between-cluster SS in the current
+  artifact) is stated explicitly.
+- PCA coordinates are visualization-only. They are not the model's training
+  coordinates and are not used to assign clusters.
+- Data license: ODbL 1.0. Track-level derived coordinates remain private by
+  default; public deployment uses an aggregate-only artifact.
+
+## Architecture
+
+```text
+Browser
+  │  HTTPS / WebSocket (Gradio)
+  ▼
+Gradio frontend (7860) ──HTTP/JSON──▶ FastAPI backend (8000)
+  │                                      │
+  │  Plotly.js / constellation.js        ├─ trusted deployment-v1 model bundle
+  │  served from reviewed assets         ├─ visualization artifact (points or aggregate)
+  ▼                                      └─ research comparison artifact
+Interactive UI
+
+Offline preparation (operator machine, never in requests):
+authorized CSV + trusted bundle ─▶ PCA/sample/occupancy artifacts
+                                └▶ controlled training-population comparison
+```
+
+- [Architecture](docs/ARCHITECTURE.md) owns module boundaries and data flow.
+- [Visualization pipeline](docs/VISUALIZATION.md) owns PCA artifacts, sampling,
+  neighbor space and public/private policy.
+- [Research design](docs/RESEARCH.md) owns evidence provenance and comparisons.
+- [Design system](docs/DESIGN.md) owns tokens, responsive behavior and a11y.
+- [Model serving](docs/MODEL_SERVING.md) owns the trusted artifact contract.
+- [API](docs/API.md) owns endpoints, schemas and errors.
+- [Web application](docs/WEB.md) owns the UI, interactions and browser checks.
+- [Deployment](docs/DEPLOYMENT.md) owns container and operations guidance.
+
+## Quick start (Windows PowerShell, Python 3.12)
 
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade "pip>=26.2.2"
 .\.venv\Scripts\python.exe -m pip install -e ".[api,web,dev]"
+```
+
+The trusted model bundle is expected at `artifacts/deployment-v1`. Prepare the
+visualization and research artifacts from the authorized local CSV (new-only
+outputs; the raw CSV and all artifacts stay gitignored):
+
+```powershell
+.\.venv\Scripts\python.exe scripts/prepare_visualization.py `
+  --dataset dataset.csv --model-dir artifacts/deployment-v1 `
+  --output artifacts/visualization-v1 --mode points
+.\.venv\Scripts\python.exe scripts/prepare_visualization.py `
+  --dataset dataset.csv --model-dir artifacts/deployment-v1 `
+  --output artifacts/visualization-public-v1 --mode aggregate
+.\.venv\Scripts\python.exe scripts/prepare_research.py `
+  --dataset dataset.csv --model-dir artifacts/deployment-v1 `
+  --output artifacts/research-v1
+```
+
+Terminal 1 (backend):
+
+```powershell
+$env:SPOTIFY_MODEL_DIR = (Resolve-Path "artifacts/deployment-v1").Path
+$env:SPOTIFY_VISUALIZATION_DIR = (Resolve-Path "artifacts/visualization-v1").Path
+$env:SPOTIFY_RESEARCH_DIR = (Resolve-Path "artifacts/research-v1").Path
+.\.venv\Scripts\python.exe -m uvicorn spotify_cluster.api.app:app --host 127.0.0.1 --port 8000
+```
+
+Terminal 2 (frontend):
+
+```powershell
+$env:SPOTIFY_API_BASE_URL = "http://127.0.0.1:8000"
+.\.venv\Scripts\python.exe -m spotify_cluster.web.app
+```
+
+Open <http://127.0.0.1:7860>. The frontend binds loopback by default; it accepts
+`SPOTIFY_WEB_HOST` (loopback or `0.0.0.0` only) and `SPOTIFY_WEB_PORT` for
+container/reverse-proxy use. Stop both with Ctrl+C.
+
+## Checks
+
+```powershell
 .\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m pytest -q tests/test_api_real_model.py --run-real-api
 .\.venv\Scripts\python.exe -m ruff check .
 .\.venv\Scripts\python.exe -m ruff format --check .
 .\.venv\Scripts\python.exe -m build
-.\.venv\Scripts\python.exe scripts/export_model.py --dataset dataset.csv --output artifacts/deployment-v1 --profile deployment-v1
 ```
 
-On POSIX use `python3.12` and `.venv/bin/python` in the equivalent commands.
-Export requires a new output directory. To repeat training, choose a distinct
-versioned output path; existing artifacts are never overwritten. Omitted profile
-selection retains the gated `historical-final-refit` route. The approved deployment
-profile does not establish historical equivalence.
+Normal tests use deterministic software fixtures and need neither the private
+dataset nor model artifacts. The real-API test requires the trusted bundle. The
+browser verification used Playwright against the live local services; see
+[WEB.md](docs/WEB.md). The wheel includes the built constellation bundle and its
+third-party license; the Plotly browser asset is served from the installed
+`plotly` package.
 
-The default tests need neither CSV nor model artifacts. With the private CSV and
-`artifacts/deployment-v1` available, run the real-model checks and one sequential
-temporary reconstruction explicitly:
+## Deployment
 
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q --run-real-model
-```
+`Dockerfile` + `compose.yaml` prepare a non-root container pair with health
+checks, read-only mounts and the aggregate public visualization by default.
+`deploy/nginx.conf.example` sketches TLS and rate limiting. Actual public
+publication is **BLOCKED**: no hosting credentials, domain/TLS authority or
+per-track redistribution approval were available. No public URL is claimed.
+See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
-[Model serving](docs/MODEL_SERVING.md) shows real inference and profile inspection.
-[Local API](docs/API.md) owns backend startup, endpoints and API-only real-model
-verification (`--run-real-api`, without reconstruction). No refit is needed to
-serve the existing bundle.
+## Repository boundaries
 
-[Local web application](docs/WEB.md) covers the Gradio dashboard, numerical F9
-prediction form, Cluster Explorer and research presentation. Start FastAPI on
-loopback port 8000, then run `.\.venv\Scripts\python.exe -m spotify_cluster.web.app`
-and open <http://127.0.0.1:7860>. Configure the backend through
-`SPOTIFY_API_BASE_URL` (default `http://127.0.0.1:8000`). No public sharing or remote
-deployment is enabled.
-
-## Inputs and scientific boundaries
-
-Only the Maharshi Pandya Spotify Tracks Dataset snapshot declared in
-[config.py](src/spotify_cluster/config.py) is authorized. The local `dataset.csv`
-is ignored by Git. There is no automatic network acquisition or alternative data.
-Synthetic test fixtures are software checks, never experimental evidence.
-
-The original `Spotify_Music_Clustering_Final.ipynb` remains at the project root,
-unchanged and ignored: its configuration contains a private transport URL and
-stored outputs have not been approved for redistribution. `notebooks/` is reserved
-for a separately reviewed public copy; no such copy is made here.
-
-F9 excludes genre and text metadata. Robust geometry historically emphasized
-instrumentalness. Clusters are not ground-truth genres, distances are not
-probabilities, and a refit on all unique tracks has no fresh independent Holdout
-score. The historical Holdout remains closed.
-
-## Navigation
-
-- [Architecture](docs/ARCHITECTURE.md): package boundaries and HTTP web integration.
-- [Local web application](docs/WEB.md): installation, tabs, startup and browser checks.
-- [Model serving](docs/MODEL_SERVING.md): trusted artifacts and inference usage.
-- [Local REST API](docs/API.md): installation, startup, schemas and HTTP verification.
-- [Backend verification](plans/20261112-fastapi-backend/reports/verification.md):
-  executed API, packaging and artifact-preservation evidence.
-- [Notebook audit](docs/NOTEBOOK_AUDIT.md): extraction evidence and unresolved settings.
-- [Deployment verification](plans/20261112-deployment-model/reports/verification.md):
-  actual model identity, profiles and executed acceptance checks.
-- [Initial foundation report](plans/20261112-spotify-foundation/reports/verification.md):
-  preserved historical delivery record from before deployment authorization.
+The raw `dataset.csv`, the original notebook, fitted bundles, verification
+samples and visualization/research artifacts are ignored by Git. The abandoned
+repository is not used. `plans/` preserves historical delivery evidence and
+`docs/` owns current implementation guidance. LLM/browser assets are pinned;
+`scripts/constellation/` contains the reproducible Three.js build source and
+[third-party notices](src/spotify_cluster/web/static/THIRD_PARTY_LICENSES.txt).

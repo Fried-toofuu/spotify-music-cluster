@@ -104,3 +104,13 @@ def test_no_upload_sample_dataset_or_cors_surface(api_client):
         },
     )
     assert "access-control-allow-origin" not in response.headers
+
+
+def test_oversized_request_body_is_rejected(api_client):
+    response = api_client.post(
+        "/api/v1/predict",
+        content=b"x" * (70 * 1024),
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 413
+    assert response.json() == {"detail": "Request body too large"}

@@ -67,3 +67,13 @@ training uses one thread for bounded resource use and reproducibility. These
 are software safeguards, not new scientific feature engineering. Data hashing
 uses length-prefixed normalized UTF-8 IDs followed by little-endian float64
 row-major F9 bytes and the preparation version.
+
+## Archived evidence exposure in the application
+
+The Research tab may display the archived one-time Holdout Silhouette,
+Davies–Bouldin and Calinski–Harabasz values when the research artifact is
+provisioned. They are labeled as archived historical evidence for the frozen
+historical estimator, are not recomputed, and are never attached to deployment-v1
+predictions. The Holdout remains closed. The new controlled comparison artifact
+is a separately labeled training-population development calculation with no
+Holdout access.

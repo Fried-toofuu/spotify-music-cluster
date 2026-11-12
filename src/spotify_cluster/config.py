@@ -16,6 +16,7 @@ F9 = (
     "liveness",
 )
 BOUNDED = tuple(f for f in F9 if f not in ("tempo", "loudness"))
+F5 = F9[:5]
 EXPECTED_SHA256 = "b202fa49909b2d5cef71a04b1d21243cfeb36414535f2ca9272aa646721177bd"
 RAW_ROWS = 114_000
 TRACK_COUNT = 89_741
@@ -44,6 +45,35 @@ RAW_COLUMNS = (
     "track_genre",
 )
 PREPARATION_VERSION = "notebook-track-f9-v1"
+VISUALIZATION_SCHEMA_VERSION = 1
+VISUALIZATION_KIND = "pca-cluster-space"
+VISUALIZATION_SEED = 42
+VISUALIZATION_PER_CLUSTER_CAP = 3000
+VISUALIZATION_PCA_COMPONENTS = 3
+VISUALIZATION_OCCUPANCY_BINS = 40
+VISUALIZATION_OCCUPANCY_MIN_COUNT = 10
+VISUALIZATION_MODES = ("points", "aggregate")
+DATASET_LICENSE = MappingProxyType(
+    {
+        "name": "Spotify Tracks Dataset (Maharshi Pandya, Kaggle)",
+        "license": "ODbL 1.0",
+        "url": "https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset",
+        "redistribution": (
+            "Track-level derived coordinates remain private by default. A public "
+            "deployment must use an aggregate-only visualization artifact unless "
+            "explicit redistribution approval exists. ODbL attribution and "
+            "share-alike obligations still apply to any distributed derivative."
+        ),
+    }
+)
+VISUALIZATION_LIMITATIONS = (
+    "PCA coordinates are a visualization projection of RobustScaler-transformed "
+    "F9, not the coordinates used to fit or assign the deployed model. Displayed "
+    "axes are not model distances. Stratified plotted proportions are not "
+    "population proportions. Clusters are acoustic groups, not genres or moods."
+)
+RESEARCH_SCHEMA_VERSION = 1
+RESEARCH_KIND = "training-population-comparison"
 SCALER_PARAMS = dict(
     with_centering=True,
     with_scaling=True,

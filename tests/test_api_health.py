@@ -42,6 +42,11 @@ def test_health_metadata_profiles_and_openapi(api_client):
         "/api/v1/clusters",
         "/api/v1/predict",
         "/api/v1/predict/batch",
+        "/api/v1/visualization/meta",
+        "/api/v1/visualization/points",
+        "/api/v1/visualization/occupancy",
+        "/api/v1/visualization/neighbors",
+        "/api/v1/research/comparison",
     }
     assert spec["components"]["schemas"]["Track"]["additionalProperties"] is False
 

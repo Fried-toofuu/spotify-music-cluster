@@ -1,9 +1,23 @@
 """Presentation correctness against software-only API responses."""
 
+from types import SimpleNamespace
+
 import pytest
+from plotly.graph_objects import Figure
 
 from spotify_cluster.config import F9
-from spotify_cluster.web.components import Handlers, insight, payload, prediction_text
+from spotify_cluster.web.components import (
+    Handlers,
+    insight,
+    payload,
+    prediction_card_html,
+    preview_payload,
+    selection_html,
+)
+
+
+def event(index):
+    return SimpleNamespace(index=index)
 
 
 def test_exact_payload_and_domains(api_track):
@@ -40,58 +54,99 @@ def test_incomplete_payload():
         payload([0])
 
 
-def test_refresh_predict_and_explore(web_client, web_responses, api_track):
-    handlers = Handlers(web_client)
-    state, status, summary, distribution, table, diagnostic, identity = (
-        handlers.refresh()
+def test_refresh_returns_every_panel(web_client, web_responses):
+    result = Handlers(web_client).refresh()
+    assert len(result) == 16
+    state, brandbar, status, overview, note, facts, finding, population = result[:8]
+    identity, disclosure, explorer, detail, research, contrib, comparison, archived = (
+        result[8:]
     )
-    assert "ready" in status and "10" in summary
+    assert state["model"]["model_id"] == "software-fixture-only"
+    assert "Live verified aggregates" in brandbar
+    assert "API ready" in status and "loaded" in status
+    assert overview["view"] == "points"
+    assert (
+        overview["sample"]["size"] == 1
+    )  # every fourth point of the four-point fixture
+    assert "Preview plots every fourth" in note
+    assert "10 tracks" in facts and "NOT VERIFIED" in facts
+    assert "100.00%" in finding and "not prediction accuracy" in finding
+    assert "Cluster 0" in population
     assert "software-fixture-only" in identity
-    assert [p.get_width() for p in distribution.axes[0].patches] == [5.0, 5.0]
-    assert table["Share (%)"].tolist() == [50.0, 50.0]
-    assert "100.000%" in diagnostic and "not prediction accuracy" in diagnostic
-    feedback, result, distances, exact = handlers.predict(state, *api_track.values())
-    assert "received" in feedback and "software-fixture-only" in result
-    assert "Cluster 0" in result
-    assert [p.get_height() for p in distances.axes[0].patches] == web_responses[
-        "predict"
-    ]["distances"]
-    assert exact["Cluster"].tolist() == ["Cluster 0", "Cluster 1"]
+    assert "Plotted sample" in disclosure and "4 tracks" in disclosure
+    assert explorer["view"] == "points"
+    assert "Sample inspector" in detail
+    assert "Research &amp; methodology" in research
+    assert "Archived historical" in research
+    assert isinstance(contrib, Figure)
+    assert isinstance(comparison, Figure)
+    assert len(archived) == 3
+    assert set(archived["Metric"]) == {
+        "Holdout Silhouette",
+        "Holdout Davies–Bouldin",
+        "Holdout Calinski–Harabasz",
+    }
+
+
+def test_load_explorer_and_point_selection(web_client, web_responses):
+    handlers = Handlers(web_client)
+    state = handlers.refresh()[0]
+    payload_value, disclosure, placeholder = handlers.load_explorer(state)
+    assert payload_value["view"] == "points"
+    assert "Plotted sample" in disclosure
+    assert "Sample inspector" in placeholder
+    selected = handlers.explorer_select(state, event(0))
+    assert "Sample #0" in selected
+    assert "Nearest sampled tracks" in selected
+    assert "not screen distance" in selected
+    failed = handlers.explorer_select(state, event(1))
+    assert "Could not complete" in failed
+    assert handlers.explorer_select(None, event(0)).startswith('<div class="obs-card">')
+
+
+def test_explore_changes_with_feature_and_statistic(web_client, web_responses):
+    handlers = Handlers(web_client)
+    state = handlers.refresh()[0]
     text, chart, table, details = handlers.explore(
         state, "Cluster 1", "tempo", "Median"
     )
-    assert "Cluster 1" in text and len(chart.axes[0].patches) == 1
-    assert chart.axes[0].get_ylabel() == "Tempo (BPM)"
+    assert "Cluster 1" in text
+    assert isinstance(chart, Figure)
+    assert list(chart.data[0].x) == ["Cluster 1"]
+    assert chart.layout.yaxis.title.text == "Tempo (BPM)"
     assert list(table) == ["Feature", "Cluster 1", "Unit"]
     assert len(details) == 9
+    empty = handlers.explore(None, "Compare Both", "tempo", "Mean")
+    assert empty[1].layout.annotations[0].text == "Refresh live data first."
+    assert empty[2:] == (None, None)
 
 
-def test_profile_meaning_follows_current_profiles(web_client, web_responses):
-    profiles = web_responses["clusters"]["clusters"]
-    profiles["0"]["mean"]["instrumentalness"] = 0.9
-    profiles["1"]["mean"]["instrumentalness"] = 0.1
+def test_prediction_and_stale_clearing(web_client, web_responses, api_track):
     handlers = Handlers(web_client)
     state = handlers.refresh()[0]
-    assert (
-        "Cluster 0 has higher"
-        in handlers.explore(state, "Compare Both", "instrumentalness", "Mean")[0]
-    )
-
-
-def test_identity_mismatch_and_population(web_client, web_responses, api_track):
-    handlers = Handlers(web_client)
-    state = handlers.refresh()[0]
+    feedback, card, chart, exact = handlers.predict(state, *api_track.values())
+    assert "received" in feedback
+    assert "Cluster 0" in card and "software-fixture-only" in card
+    assert "probability" in card.lower() and "confidence" in card.lower()
+    assert isinstance(chart, Figure)
+    assert exact["Cluster"].tolist() == ["Cluster 0", "Cluster 1"]
     web_responses["predict"]["model_id"] = "changed-model"
-    result = handlers.predict(state, *api_track.values())
-    assert "model changed" in result[0] and result[2:] == (None, None)
+    feedback, card, chart, exact = handlers.predict(state, *api_track.values())
+    assert "model changed" in feedback
+    assert "Could not complete" in card
+    assert chart is None and exact is None
+
+
+def test_identity_mismatch_and_offline(web_client, web_responses):
+    handlers = Handlers(web_client)
+    state = handlers.refresh()[0]
+    assert state
     web_responses["model"]["training_sample_count"] += 1
     result = handlers.refresh()
-    assert result[0] is None and "disagree" in result[1]
+    assert result[0] is None and "disagree" in result[2]
     web_responses["model"]["model_id"] = "another-model"
     assert handlers.refresh()[0] is None
 
-
-def test_offline_and_invalid_clear_outputs(api_track):
     import httpx
 
     from spotify_cluster.web.api_client import APIClient
@@ -99,21 +154,43 @@ def test_offline_and_invalid_clear_outputs(api_track):
     def refuse(request):
         raise httpx.ConnectError("PRIVATE", request=request)
 
-    handlers = Handlers(APIClient(transport=httpx.MockTransport(refuse)))
-    refresh = handlers.refresh()
-    assert refresh[0] is None and "Cannot connect" in refresh[1]
-    result = handlers.predict(None, *api_track.values())
-    assert "Cannot connect" in result[0] and result[2:] == (None, None)
-    assert "nine" in handlers.predict(None, 0)[0]
-    assert handlers.explore(None, "Compare Both", "tempo", "Mean")[1:] == (
-        None,
-        None,
-        None,
-    )
+    offline = Handlers(APIClient(transport=httpx.MockTransport(refuse)))
+    result = offline.refresh()
+    assert result[0] is None and "Cannot connect" in result[2]
+    assert "Could not complete" in offline.predict(None, 0)[1]
+    empty = offline.explore(None, "Compare Both", "tempo", "Mean")
+    assert empty[1].layout.annotations[0].text == "Refresh live data first."
+    assert empty[2:] == (None, None)
 
 
-def test_missing_diagnostic_and_prediction_identity(web_responses):
-    assert "Not available" in insight({})
-    text = prediction_text(web_responses["predict"])
-    assert web_responses["predict"]["model_id"] in text
-    assert "NOT VERIFIED" in text and "50.00%" in text
+def test_preview_payload_is_explicit(web_responses):
+    source = web_responses["points"]
+    preview = preview_payload(source, stride=2)
+    assert preview["sample"]["size"] == 2
+    assert preview["sample"]["policy"].startswith("Overview preview")
+    assert "not population proportions" in preview["sample"]["proportions_disclosure"]
+    assert len(preview["points"]["x"]) == 2
+    assert source["sample"]["size"] == 4
+
+
+def test_prediction_card_uses_current_profile(web_responses):
+    result = web_responses["predict"]
+    card = prediction_card_html(result, web_responses["clusters"])
+    assert "Cluster 0" in card
+    assert "nearest" in card.lower()
+    assert "not a probability" in card.lower()
+    assert "instrumentalness" in card
+
+
+def test_selection_html_escapes_and_uses_real_features(web_responses):
+    result = web_responses["neighbors"]
+    markup = selection_html(result)
+    assert "Sample #0" in markup
+    assert "Nearest sampled tracks" in markup
+    assert "0.2000" in markup
+    assert "Cluster 0" in markup
+
+
+def test_insight_follows_current_profiles(web_responses):
+    assert "100.00%" in insight(web_responses["clusters"])
+    assert "not available" in insight({}).lower()

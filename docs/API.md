@@ -1,139 +1,114 @@
 # Local REST API
 
-The backend serves an operator-trusted deployment-v1 bundle through the existing
-[InferenceService](../src/spotify_cluster/inference.py). It does not train or read
-the CSV. The [Gradio web application](WEB.md) is an HTTP client of these endpoints;
-no remote deployment is configured.
+The backend serves one operator-trusted deployment-v1 bundle and optional
+checksummed visualization/research artifacts through the existing
+[InferenceService](../src/spotify_cluster/inference.py). It does not train, read
+the CSV, serve the dataset or expose arbitrary files. The
+[Gradio web application](WEB.md) is an HTTP client of these endpoints.
 
 ## Install and run
 
-Use the Python 3.12 environment described in [README](../README.md). Scientific
-pins are unchanged; API and development dependencies are declared in
-[pyproject.toml](../pyproject.toml).
+Use Python 3.12 and the environment in [README](../README.md); exact runtime
+pins are in [constraints.txt](../constraints.txt).
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[api,dev]"
-$env:SPOTIFY_MODEL_DIR = "D:\spotify_music_cluster\artifacts\deployment-v1"
+.\.venv\Scripts\python.exe -m pip install -e ".[api,web,dev]"
+$env:SPOTIFY_MODEL_DIR = (Resolve-Path "artifacts/deployment-v1").Path
+$env:SPOTIFY_VISUALIZATION_DIR = (Resolve-Path "artifacts/visualization-v1").Path
+$env:SPOTIFY_RESEARCH_DIR = (Resolve-Path "artifacts/research-v1").Path
 .\.venv\Scripts\python.exe -m uvicorn spotify_cluster.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-Stop with Ctrl+C. The source checkout defaults to its own
-`artifacts/deployment-v1`, independently of the shell working directory.
-`SPOTIFY_MODEL_DIR` and the factory's explicit `model_dir` must be absolute
-operator-selected local paths. An installed wheel requires explicit configuration;
-it does not search the working directory for a model. Explicit factory configuration
-takes precedence over the environment. No HTTP input can select a path.
-
-The [application factory](../src/spotify_cluster/api/app.py) loads one service per
-lifespan and clears its reference on shutdown. Missing files, checksum failures,
-incompatible environments, invalid fitted state, wrong provenance or mismatched
-profiles fail startup. Inspect server logs for the operational cause. There is
-no automatic reconstruction or fixture fallback. Each worker process would load
-its own service; the local command starts one worker.
+The source checkout defaults to its own artifacts; an installed wheel requires
+explicit absolute `SPOTIFY_MODEL_DIR` and optional `SPOTIFY_VISUALIZATION_DIR`/
+`SPOTIFY_RESEARCH_DIR` paths. The factory `model_dir`/`visualization_dir`/
+`research_dir` arguments are the explicit test/operator seam. No HTTP input can
+select a path. The model loader enforces the recorded environment and provenance.
 
 ## Endpoints and schemas
 
 Swagger: <http://127.0.0.1:8000/docs>. Machine-readable contract:
-<http://127.0.0.1:8000/openapi.json>. Explicit request/response models live in
-[schemas.py](../src/spotify_cluster/api/schemas.py); adapters live in
+<http://127.0.0.1:8000/openapi.json>. Explicit models live in
+[schemas.py](../src/spotify_cluster/api/schemas.py); adapters in
 [routes.py](../src/spotify_cluster/api/routes.py).
 
 | Method | Path | Contract |
 |---|---|---|
-| GET | `/api/v1/health` | Readiness, service/version and `model_loaded`; 200 only with serving state |
-| GET | `/api/v1/model` | Verified identity/profile, KMeans/K2, RobustScaler, ordered features, population, PCA, origin and historical status |
-| GET | `/api/v1/clusters` | Model ID, raw-unit cluster statistics, scaled-space feature contributions and interpretation |
+| GET | `/api/v1/health` | Readiness, service/version, `model_loaded`; 200 only with serving state |
+| GET | `/api/v1/model` | Verified identity/profile, KMeans/K2, RobustScaler, F9 order, population, PCA, origin, historical status |
+| GET | `/api/v1/clusters` | Model ID, raw-unit cluster statistics, scaled-space feature contributions, interpretation |
 | POST | `/api/v1/predict` | One raw F9 object → one prediction |
-| POST | `/api/v1/predict/batch` | `{"tracks": [...]}` → `{"predictions": [...]}` in the same order, 1–100 records |
+| POST | `/api/v1/predict/batch` | `{"tracks": [...]}` → predictions in order, 1–100 records |
+| GET | `/api/v1/visualization/meta` | `{available: true, ...}` with mode/PCA/sample/views/license, or `{available: false, reason}` |
+| GET | `/api/v1/visualization/points` | Points view + occupancy; only when a **points** artifact is mounted |
+| GET | `/api/v1/visualization/occupancy` | Aggregate density view |
+| GET | `/api/v1/visualization/neighbors?index=<int>&k=<1-12>` | Selected point + nearest sampled tracks in fitted scaled F9 space |
+| GET | `/api/v1/research/comparison` | Labeled controlled comparisons + archived evidence, or `{available: false, reason}` |
 
-Input must contain exactly `acousticness`, `danceability`, `energy`, `valence`,
-`tempo`, `loudness`, `speechiness`, `instrumentalness`, `liveness`. Key order may
-vary; inference uses that exact F9 order. Integers and floating-point numbers are
-accepted. Strings, booleans, nulls, NaN/infinities, missing/extra keys and nested
-feature values are rejected. Audio domains reuse the
-[inference validator](../src/spotify_cluster/inference.py): all descriptors except
-tempo/loudness are in [0,1], tempo is nonnegative (zero allowed), loudness is finite
-without an additional bound. Inputs are never clipped, normalized or imputed.
+Predictions contain `model_id`, `cluster_id`, two `distances` in centroid order
+[0,1], `distance_definition`, the current aggregate `profile`, `limitation`,
+`reconstruction_status`, `deployment_profile` and `historical_equivalence`
+(`not_verified`). Bounded descriptors are [0,1], tempo is finite nonnegative,
+loudness is finite dB. Inputs are never clipped or imputed. Batch inputs are
+bounded to 100 records.
 
-Illustrative input, **not** a stored research record or verified output example:
-
-```powershell
-$track = @{
-  acousticness = 0.72; danceability = 0.61; energy = 0.38; valence = 0.44
-  tempo = 118.5; loudness = -9.2; speechiness = 0.05
-  instrumentalness = 0.81; liveness = 0.13
-}
-$base = "http://127.0.0.1:8000/api/v1"
-Invoke-RestMethod "$base/predict" -Method Post -ContentType "application/json" -Body ($track | ConvertTo-Json)
-Invoke-RestMethod "$base/predict/batch" -Method Post -ContentType "application/json" -Body (@{tracks = @($track, $track)} | ConvertTo-Json -Depth 3)
-```
-
-A prediction contains `model_id`, `cluster_id`, two `distances` in centroid order
-[0,1], `distance_definition`, the associated aggregate `profile`, `limitation`,
-`reconstruction_status`, `deployment_profile` and `historical_equivalence`.
-Profiles retain the artifact's `count`, `share`, `mean`, `median`, sample `std`,
-`q1`, `q3` and `iqr`; aggregate features use raw units. `/clusters` also exposes
-the artifact's feature contributions in fitted scaled space. Model responses select
-reviewed fields rather than exporting arbitrary metadata. HTTP historical status
-is `not_verified`, mapped from the artifact's unchanged `NOT VERIFIED` spelling.
+The visualization endpoints are additive and optional. The frontend checks
+`model_id` on every artifact response; mismatched or stale artifacts are
+discarded, and the UI shows an honest unavailable/aggregate state. The API
+compresses responses over 1 KB with gzip (the 6,000-point payload is ~574 KB
+uncompressed / ~207 KB gzip). Artifacts are loaded once per worker, not per
+request. The API never serves the model bundle, dataset, notebook, verification
+sample or file paths.
 
 ## Errors and privacy
 
 | Situation | Result |
 |---|---|
 | Valid request | 200 |
-| Invalid body, domain, JSON or batch size | 422 with `detail` error locations/types/messages |
-| Serving dependency absent at runtime | 503, `{"detail":"Model service unavailable"}` |
-| Invalid artifact at startup | Startup aborts; no ready server |
-| Unexpected internal failure | 500, `{"detail":"Internal server error"}` |
+| Invalid body/domain/JSON/batch or neighbors index | 422 with sanitized locations/types/messages |
+| Request body over 64 KiB | 413 `{"detail":"Request body too large"}` |
+| Optional artifact absent | 404 for its data route; `/meta` and `/research/comparison` return `available: false` |
+| Serving dependency absent | 503 `{"detail":"Model service unavailable"}` |
+| Invalid model artifact at startup | Startup aborts; no ready server |
+| Unexpected internal failure | 500 `{"detail":"Internal server error"}` |
 
 Validation responses omit input values and exception context. Internal errors
 log the exception type without feature payloads. Startup logs retain loader
-diagnostics for operators. Debug responses are disabled. The API offers no raw
-dataset, verification sample, upload, model URL, retraining or filesystem endpoint.
-CORS is not enabled. No authentication or internet-facing rate limiting is added;
-this is a loopback local MVP. A public service would require a separate deployment
-and access-control decision, request-size/rate controls and reviewed logging.
+diagnostics for operators. Debug responses are disabled. CORS is not enabled.
+The API offers no raw dataset, upload, model URL, retraining or filesystem
+endpoint. The local API has no authentication or rate limiting; a public
+deployment must terminate TLS and enforce request/rate limits at a reverse
+proxy (see [DEPLOYMENT.md](DEPLOYMENT.md)).
 
 Only operator-trusted local joblib bundles may be configured. Checksums detect
 corruption; they are not signatures and cannot make an untrusted pickle safe.
-See [model trust](MODEL_SERVING.md). Keep model files, CSV, notebook and private
-verification sample ignored and outside public distributions.
-
-## Interpretation
-
-This is unsupervised acoustic grouping, not genre or mood classification. Label
-numbers have no fixed musical meaning. Interpret the current model's profiles;
-its separation is primarily along instrumentalness, as measured by its stored
-between-cluster SS contributions. Distances are Euclidean in fitted RobustScaler
-F9 space, not squared distances, probabilities or confidence percentages.
-Single/batch distance arithmetic may differ in the last floating-point bits.
-The deployment refit is not verified equivalent to the historical estimator and
-has no independent deployment Holdout score. The historical Holdout remains closed.
+The visualization/research JSON artifacts are checksummed and identity-paired,
+but the same trust boundary applies: only operator-provided local directories.
 
 ## Verification
-
-Normal software tests use clearly labelled deterministic doubles and temporary
-software bundles; they require neither private data nor deployment artifacts.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m pytest -q tests/test_api_real_model.py --run-real-api
-.\.venv\Scripts\python.exe plans/20261112-fastapi-backend/verify-http.py
+.\.venv\Scripts\python.exe -m pytest -q tests/test_api_visualization.py
 ```
 
-`--run-real-api` requires the existing trusted `artifacts/deployment-v1` bundle.
-It checks private stored inputs against verified labels/distances through the
-actual application, with fitting and raw-data reads blocked. It never exports
-the sample. Do not use the older `--run-real-model` for an integration-only run:
-that separate historical delivery test includes a dataset load and reconstruction.
+Normal tests use clearly labelled deterministic doubles and temporary software
+bundles; they need neither the private data nor deployment artifacts.
+`--run-real-api` requires the trusted bundle and checks real HTTP predictions
+without reconstruction. The visualization tests cover availability, mode
+privacy, identity mismatch, neighbors, gzip and response validation. Do not use
+the older `--run-real-model` for an integration-only run; that separate historical
+test includes a dataset load and reconstruction.
 
-The HTTP smoke script refuses an occupied port 8000, tracks its child PID, serves
-on loopback, checks endpoints/Swagger/OpenAPI and invalid inputs, and requests
-graceful Uvicorn shutdown in `finally`. It stores only sanitized result evidence.
-Packaging and executed results are in the
-[backend verification report](../plans/20261112-fastapi-backend/reports/verification.md).
+## Interpretation
 
-Gradio sends raw F9 records over these HTTP contracts without loading another
-pipeline or seeing private artifacts. Authentication, remote hosting and deployment
-remain future work; [WEB.md](WEB.md) owns the local frontend workflow.
+This is unsupervised acoustic grouping, not genre or mood classification. Label
+numbers have no fixed musical meaning. The deployed model's separation is
+primarily along instrumentalness (97.30% of between-cluster SS in the current
+artifact). Distances are Euclidean in fitted RobustScaler F9 space, not
+probabilities or confidence percentages. The deployment refit is not verified
+equivalent to the historical estimator and has no independent deployment Holdout
+score. The historical Holdout remains closed. PCA visualization coordinates are
+not model training coordinates and are not used for assignment. Aggregate
+density cells are never individual tracks.
