@@ -1,0 +1,116 @@
+{
+  "checks": {
+    "1440-overview-dark-preference-light": "PASS",
+    "1440-explorer-dark-preference-light": "PASS",
+    "1440-predict-dark-preference-light": "PASS",
+    "1440-research-dark-preference-light": "PASS",
+    "1440-2d-light": "PASS",
+    "1440-3d-light": "PASS",
+    "1440-density-light": "PASS",
+    "1440-constellation-light": "PASS",
+    "1440-refresh-reload-preference-change": "PASS",
+    "768-overview-dark-preference-light": "PASS",
+    "768-explorer-dark-preference-light": "PASS",
+    "768-predict-dark-preference-light": "PASS",
+    "768-research-dark-preference-light": "PASS",
+    "768-2d-light": "PASS",
+    "768-3d-light": "PASS",
+    "768-density-light": "PASS",
+    "768-constellation-light": "PASS",
+    "768-refresh-reload-preference-change": "PASS",
+    "375-overview-dark-preference-light": "PASS",
+    "375-explorer-dark-preference-light": "PASS",
+    "375-predict-dark-preference-light": "PASS",
+    "375-research-dark-preference-light": "PASS",
+    "375-2d-light": "PASS",
+    "375-3d-light": "PASS",
+    "375-density-light": "PASS",
+    "375-constellation-light": "PASS",
+    "375-refresh-reload-preference-change": "PASS"
+  },
+  "errors": [],
+  "console_errors": [],
+  "navigation_console_errors": [
+    "AbortError: signal is aborted without reason\n    at wt (http://127.0.0.1:7872/assets/index-DphvyggB.js:4:1384)\n    at kn.close (http://127.0.0.1:7872/assets/index-DphvyggB.js:4:21934)\n    at http://127.0.0.1:7872/assets/Index-Akn07EZk2.js:4:3483",
+    "Unexpected error Connection errored out. ",
+    "AbortError: signal is aborted without reason\n    at wt (http://127.0.0.1:7872/assets/index-DphvyggB.js:4:1384)\n    at kn.close (http://127.0.0.1:7872/assets/index-DphvyggB.js:4:21934)\n    at http://127.0.0.1:7872/assets/Index-Akn07EZk2.js:4:3483",
+    "Unexpected error Connection errored out. ",
+    "AbortError: signal is aborted without reason\n    at wt (http://127.0.0.1:7872/assets/index-DphvyggB.js:4:1384)\n    at kn.close (http://127.0.0.1:7872/assets/index-DphvyggB.js:4:21934)\n    at http://127.0.0.1:7872/assets/Index-Akn07EZk2.js:4:3483",
+    "Unexpected error Connection errored out. "
+  ],
+  "failed_requests": [
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "iwtjik7ou4",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "ds2x1t7k1jo",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "h6vnthvryg7",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    },
+    {
+      "path": "data",
+      "reason": "net::ERR_ABORTED"
+    }
+  ],
+  "responses": []
+}

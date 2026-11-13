@@ -1,0 +1,63 @@
+{
+  "ink": {
+    "bg": 15.45,
+    "surface_1": 16.29,
+    "surface_2": 14.64,
+    "surface_3": 13.84
+  },
+  "ink_2": {
+    "bg": 5.91,
+    "surface_1": 6.24,
+    "surface_2": 5.6,
+    "surface_3": 5.3
+  },
+  "muted": {
+    "bg": 5.5,
+    "surface_1": 5.8,
+    "surface_2": 5.21,
+    "surface_3": 4.93
+  },
+  "teal": {
+    "bg": 4.73,
+    "surface_1": 4.99,
+    "surface_2": 4.48,
+    "surface_3": 4.24
+  },
+  "violet": {
+    "bg": 5.4,
+    "surface_1": 5.69,
+    "surface_2": 5.11,
+    "surface_3": 4.84
+  },
+  "amber": {
+    "bg": 5.55,
+    "surface_1": 5.86,
+    "surface_2": 5.26,
+    "surface_3": 4.98
+  },
+  "danger": {
+    "bg": 6.16,
+    "surface_1": 6.5,
+    "surface_2": 5.84,
+    "surface_3": 5.52
+  },
+  "success": {
+    "bg": 4.85,
+    "surface_1": 5.11,
+    "surface_2": 4.59,
+    "surface_3": 4.34
+  },
+  "line_strong": {
+    "bg": 3.43,
+    "surface_1": 3.62,
+    "surface_2": 3.25,
+    "surface_3": 3.07
+  },
+  "primary_button": 4.99,
+  "density_on_white": {
+    "teal_dim": 6.81,
+    "density_low": 3.06,
+    "density_mid": 3.58,
+    "density_high": 4.81
+  }
+}

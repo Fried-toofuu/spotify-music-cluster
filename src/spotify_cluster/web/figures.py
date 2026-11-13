@@ -24,8 +24,8 @@ def _base(height=320, *, title=None, showlegend=False):
         template=None,
         height=height,
         autosize=True,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor=TOKENS["surface_1"],
+        plot_bgcolor=TOKENS["surface_1"],
         font=dict(
             family="Inter, Segoe UI, system-ui, sans-serif", color=INK_2, size=12
         ),
@@ -144,7 +144,7 @@ def contributions_figure(profiles: dict) -> go.Figure:
         insidetextanchor="end",
         cliponaxis=False,
         textfont=dict(color=INK, size=12),
-        insidetextfont=dict(color="#04110f", size=12),
+        insidetextfont=dict(color=TOKENS["on_accent"], size=12),
         customdata=[between.get(name, 0) for name in ordered],
         hovertemplate=(
             "<b>%{y}</b><br>Share: %{x:.3%}"
@@ -240,7 +240,7 @@ def distances_figure(prediction: dict) -> go.Figure:
     )
     figure.update_layout(bargap=0.4, margin=dict(l=92, r=24, t=44, b=48))
     figure.update_xaxes(
-        title="Euclidean distance in transformed F9 space",
+        title="Euclidean distance<br>in transformed F9 space",
         rangemode="tozero",
         automargin=True,
     )

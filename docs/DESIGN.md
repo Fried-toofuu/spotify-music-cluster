@@ -1,18 +1,21 @@
 # Acoustic Observatory design system
 
-The product register is a scientific music-intelligence studio: dark, layered,
+The product register is a scientific music-intelligence studio: permanently light, layered,
 restrained, analytical and music-oriented. It avoids neon decoration, glass
 effects and gradients that compromise reading. The scientific caveat is part of
 the visual hierarchy, not a footnote hidden by styling.
 
 ## Visual direction
 
-- Deep charcoal page (`#080d0f`) with layered surface tints (`#0e1719`,
-  `#132326`, `#193033`) and hairline boundaries (`#22383a`, `#35565a`).
-- Muted teal (`#5eead4`) is the primary accent and the fixed color for
-  Cluster 0; violet (`#b7a4ff`) is the fixed color for Cluster 1. Amber
-  (`#f5c76a`) marks the dominant finding and caveat accents. Red is reserved
-  for errors.
+- Off-white page (`#F7F9FC`), white cards (`#FFFFFF`), cool secondary surfaces
+  (`#F0F3F7`, `#E8EDF3`) and thin neutral separators (`#E0E6ED`). Interactive
+  boundaries use `#7B8896`; shadows are reserved for light overlay depth.
+- Deep teal (`#147D73`) identifies Cluster 0 and primary actions; violet
+  (`#7055B9`) identifies Cluster 1. Amber (`#8A5B10`) marks findings/caveats;
+  red (`#B42335`) is reserved for errors. Primary actions use white text.
+- Light appearance is mandatory across Gradio, Plotly and Three.js. No theme
+  selector, stored preference or separate dark palette exists. OS dark preference
+  and explicit Gradio dark URLs must still render light.
 - Display type is a system serif stack (Iowan/Palatino/Georgia) for the hero and
   section headings; body is Inter/Segoe UI/system sans; labels and data use a
   mono stack. This contrast axis gives the observatory an editorial/scientific
@@ -28,10 +31,10 @@ the visual hierarchy, not a footnote hidden by styling.
 
 | Group | Values |
 |---|---|
-| Page / surfaces | `#080d0f`, `#0e1719`, `#132326`, `#193033` |
-| Text | `#eef7f4` primary, `#c4d6d2` secondary, `#8ba39e` muted |
-| Lines | `#22383a`, strong `#35565a` |
-| Accents | teal `#5eead4`, violet `#b7a4ff`, amber `#f5c76a`, error `#ff9b9b` |
+| Page / surfaces | `#F7F9FC`, `#FFFFFF`, `#F0F3F7`, `#E8EDF3` |
+| Text | `#17212B` primary, `#556270` secondary, `#596775` muted |
+| Lines | `#E0E6ED`, interactive `#7B8896` |
+| Accents | teal `#147D73`, violet `#7055B9`, amber `#8A5B10`, error `#B42335` |
 | Type | hero `clamp(2.5rem, 4.2vw, 4rem)`, section `clamp(1.5rem, 2.4vw, 2rem)`, body 16px/1.6, small 0.8–0.9rem |
 | Spacing | 4, 8, 12, 16, 20, 24, 32, 44, 64 |
 | Motion | 160–240ms ease; Plotly transitions disabled; reduced-motion media query removes transitions/animations |
@@ -75,9 +78,12 @@ WebGL/constellation failure with density fallback, and reduced-motion mode.
 
 ## Accessibility
 
-- Text/token contrast ratios (WCAG): primary 17.9:1, secondary 12.9:1, muted
-  7.3:1 on the page; muted on surface 6.8:1; muted on surface-3 5.2:1; primary
-  button text 13.0:1. All tested text pairs pass AA for normal text.
+- Measured text contrast on page: primary 15.45:1, secondary
+  5.91:1, muted 5.5:1. Muted on the deepest light surface:
+  4.93:1. White primary-action text on teal: 4.99:1. These pairs
+  meet AA for normal text. Neutral control boundaries meet 3:1 on light surfaces.
+  Density uses a sequential light-to-teal scale with a labeled log colorbar;
+  color intensity encodes count. All density stops meet 3:1 on white (3.06?6.81:1).
 - Native buttons, selects, sliders and disclosure elements; custom Explorer
   buttons expose `aria-pressed`, `role="toolbar"`, `role="status"` live regions
   and visible 2px teal focus outlines.
@@ -102,3 +108,17 @@ Stateful timings and review findings belong in
 [refinement evidence](../plans/20261112-ui-refinement/reports/delivery.md), not in
 permanent performance guarantees. No decorative animation or new frontend
 runtime dependency is required by this design.
+
+## Permanent light implementation
+
+[theme.py](../src/spotify_cluster/web/theme.py) owns the only color token map.
+It generates CSS variables, the Gradio theme and the palette embedded in Explorer
+JavaScript, which passes that palette to Three.js. Gradio's compatibility dark
+slots mirror the same light values, including inherited defaults. The custom head
+sets `__theme=light`, declares `color-scheme: only light` and removes Gradio's
+body `dark` class when host/system preferences apply it after mounting. This is
+invariant enforcement with no stored theme preference. Plotly uses explicit white
+paper/plot/3D scene backgrounds; Three.js uses white with charcoal selection.
+
+[Light theme delivery](../plans/20261113-light-theme/reports/delivery.md) records
+screenshots and current verification; earlier refinement reports remain historical.

@@ -52,8 +52,10 @@ def test_distribution_figure_uses_only_aggregate_values(web_responses):
     assert list(figure.data[0].x) == [5, 5]
     assert list(figure.data[0].y) == ["Cluster 0", "Cluster 1"]
     assert list(figure.data[0].text) == ["5 · 50.00%", "5 · 50.00%"]
-    assert list(figure.data[0].marker.color) == ["#5eead4", "#b7a4ff"]
+    assert list(figure.data[0].marker.color) == ["#147D73", "#7055B9"]
     assert list(figure.layout.xaxis.range) == pytest.approx([0, 6.6])
+    assert figure.layout.paper_bgcolor == "#FFFFFF"
+    assert figure.layout.plot_bgcolor == "#FFFFFF"
 
 
 def test_comparison_figure_units_and_zero_baseline(web_responses):
@@ -78,8 +80,8 @@ def test_distance_figure_marks_the_nearest_centroid(web_responses):
     assert list(figure.data[0].y) == ["Cluster 0", "Cluster 1"]
     colors = list(figure.data[0].marker.color)
     nearest = prediction["cluster_id"]
-    assert colors[nearest] == ["#5eead4", "#b7a4ff"][nearest]
-    assert colors[1 - nearest] == "#35565a"
+    assert colors[nearest] == ["#147D73", "#7055B9"][nearest]
+    assert colors[1 - nearest] == "#7B8896"
     assert figure.layout.margin.l == 92
     assert "probability" not in figure.layout.xaxis.title.text.lower()
 

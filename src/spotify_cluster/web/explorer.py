@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
+import json
+
 import gradio as gr
 
 from .assets import constellation_url, plotly_head, register_assets
+from .theme import TOKENS
 
 TEMPLATE = """
 <div class="obs-explorer" data-compact="{{compact}}" data-constellation-url="{{constellation_url}}">
@@ -46,18 +49,18 @@ TEMPLATE = """
 """
 
 CSS = """
-.obs-explorer { background: var(--obs-surface-1, #0e1719);
+.obs-explorer { background: var(--obs-surface-1, __OBS_SURFACE_1__);
   container-type: inline-size;
-  border: 1px solid var(--obs-line, #22383a); border-radius: 14px; overflow: hidden;
-  color: var(--obs-ink, #eef7f4); }
+  border: 1px solid var(--obs-line, __OBS_LINE__); border-radius: 14px; overflow: hidden;
+  color: var(--obs-ink, __OBS_INK__); }
 .obs-explorer-head { display: flex; align-items: flex-start; justify-content: space-between;
   gap: 14px; flex-wrap: wrap; padding: 16px 18px 14px;
-  border-bottom: 1px solid var(--obs-line, #22383a); }
+  border-bottom: 1px solid var(--obs-line, __OBS_LINE__); }
 .obs-explorer-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .obs-explorer-kicker { font-family: var(--obs-mono, monospace); font-size: .8rem;
-  letter-spacing: .16em; text-transform: uppercase; color: var(--obs-muted, #8ba39e); }
+  letter-spacing: .16em; text-transform: uppercase; color: var(--obs-muted, __OBS_MUTED__); }
 .obs-explorer-heading { font-family: var(--obs-display, Georgia, serif); font-size: 1.28rem;
-  font-weight: 500; letter-spacing: -.01em; color: var(--obs-ink, #eef7f4); }
+  font-weight: 500; letter-spacing: -.01em; color: var(--obs-ink, __OBS_INK__); }
 .obs-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
   align-items: start; gap: 10px; width: 100%; min-width: 0; }
 .obs-toolbar > .obs-reset { grid-column: 1 / -1; justify-self: start; }
@@ -65,37 +68,37 @@ CSS = """
   grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .obs-seg, .obs-chips { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
   align-items: stretch; gap: 4px; padding: 4px; max-width: 100%; min-width: 0; width: 100%;
-  background: var(--obs-surface-2, #132326); border: 1px solid var(--obs-line, #22383a);
+  background: var(--obs-surface-2, __OBS_SURFACE_2__); border: 1px solid var(--obs-line, __OBS_LINE__);
   border-radius: 12px; }
 .obs-seg button, .obs-chips button { appearance: none; border: 0; background: transparent;
   white-space: nowrap;
-  color: var(--obs-muted, #8ba39e); font-family: var(--obs-mono, monospace);
+  color: var(--obs-muted, __OBS_MUTED__); font-family: var(--obs-mono, monospace);
   font-size: .82rem; letter-spacing: .04em; border-radius: 8px; padding: 8px 11px;
   margin: 0; box-sizing: border-box; line-height: 1.4; justify-content: center;
   min-height: 44px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
   transition: background-color 160ms ease, color 160ms ease; }
-.obs-seg button:hover, .obs-chips button:hover { color: var(--obs-ink, #eef7f4); }
+.obs-seg button:hover, .obs-chips button:hover { color: var(--obs-ink, __OBS_INK__); }
 .obs-seg button[aria-pressed="true"], .obs-chips button[aria-pressed="true"] {
-  background: var(--obs-surface-3, #193033); color: var(--obs-ink, #eef7f4); }
-.obs-seg button:disabled, .obs-chips button:disabled { color: var(--obs-muted, #8ba39e); background: transparent; text-decoration: line-through; cursor: not-allowed; }
+  background: var(--obs-surface-3, __OBS_SURFACE_3__); color: var(--obs-ink, __OBS_INK__); }
+.obs-seg button:disabled, .obs-chips button:disabled { color: var(--obs-muted, __OBS_MUTED__); background: transparent; text-decoration: line-through; cursor: not-allowed; opacity: 1; }
 .obs-chips button:focus-visible, .obs-seg button:focus-visible, .obs-reset:focus-visible {
-  outline: 2px solid var(--obs-teal, #5eead4); outline-offset: 2px; }
+  outline: 2px solid var(--obs-teal, __OBS_TEAL__); outline-offset: 2px; }
 .obs-swatch { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
-.obs-swatch.c0 { background: var(--obs-teal, #5eead4); }
-.obs-swatch.c1 { background: var(--obs-violet, #b7a4ff); }
-.obs-reset { appearance: none; border: 1px solid var(--obs-line-strong, #35565a);
-  background: transparent; color: var(--obs-ink-2, #c4d6d2);
+.obs-swatch.c0 { background: var(--obs-teal, __OBS_TEAL__); }
+.obs-swatch.c1 { background: var(--obs-violet, __OBS_VIOLET__); }
+.obs-reset { appearance: none; border: 1px solid var(--obs-line-strong, __OBS_LINE_STRONG__);
+  background: transparent; color: var(--obs-ink-2, __OBS_INK_2__);
   font-family: var(--obs-mono, monospace); font-size: .82rem; border-radius: 8px;
   padding: 8px 11px; min-height: 44px; cursor: pointer; }
-.obs-reset:hover { background: var(--obs-surface-2, #132326); color: var(--obs-ink, #eef7f4); }
+.obs-reset:hover { background: var(--obs-surface-2, __OBS_SURFACE_2__); color: var(--obs-ink, __OBS_INK__); }
 .obs-reset[hidden] { display: none; }
 .obs-sample-picker { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; width: 100%; }
 .obs-sample-picker[hidden] { display: none; }
-.obs-sample-picker label { font-size: .85rem; color: var(--obs-ink-2, #c4d6d2); }
+.obs-sample-picker label { font-size: .85rem; color: var(--obs-ink-2, __OBS_INK_2__); }
 .obs-sample-picker input { display: block; width: 120px; min-height: 44px;
-  background: var(--obs-surface-2, #132326); color: var(--obs-ink, #eef7f4);
-  border: 1px solid var(--obs-line-strong, #35565a); border-radius: 8px; padding: 8px; }
-.obs-sample-picker input:focus-visible { outline: 2px solid var(--obs-teal, #5eead4); }
+  background: var(--obs-surface-2, __OBS_SURFACE_2__); color: var(--obs-ink, __OBS_INK__);
+  border: 1px solid var(--obs-line-strong, __OBS_LINE_STRONG__); border-radius: 8px; padding: 8px; }
+.obs-sample-picker input:focus-visible { outline: 2px solid var(--obs-teal, __OBS_TEAL__); }
 .obs-touch-toggle { margin: 8px 14px; }
 .obs-explorer.is-touch-locked .obs-plot,
 .obs-explorer.is-touch-locked .obs-constellation { pointer-events: none; touch-action: pan-y; }
@@ -106,10 +109,10 @@ CSS = """
 .obs-constellation-canvas { display: block; width: 100%; height: 100%;
   touch-action: none; cursor: grab; }
 .obs-constellation-tip { position: absolute; z-index: 2; pointer-events: none;
-  max-width: 220px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--obs-line-strong, #35565a);
-  background: var(--obs-surface-3, #193033); color: var(--obs-ink, #eef7f4);
+  max-width: 220px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--obs-line-strong, __OBS_LINE_STRONG__);
+  background: var(--obs-surface-3, __OBS_SURFACE_3__); color: var(--obs-ink, __OBS_INK__);
   font-family: var(--obs-mono, monospace); font-size: .8rem; line-height: 1.5;
-  box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  box-shadow: 0 6px 18px rgba(23,33,43,.10); }
 .obs-explorer.is-constellation .obs-plot { display: none; }
 .obs-explorer.is-compact [data-view="constellation"] { display: none; }
 .obs-explorer.is-compact .obs-plot { height: clamp(280px, 40vh, 400px); }
@@ -121,7 +124,7 @@ CSS = """
 .obs-explorer:not(.is-compact) .obs-plot .modebar-container { top: -32px !important; }
 .obs-explorer-foot { display: flex; align-items: flex-start; justify-content: space-between;
   gap: 10px 18px; flex-wrap: wrap; padding: 11px 18px 13px;
-  border-top: 1px solid var(--obs-line, #22383a); }
+  border-top: 1px solid var(--obs-line, __OBS_LINE__); }
 @media (pointer: coarse) {
   .obs-plot, .obs-plot .main-svg, .obs-plot .draglayer, .obs-plot .nsewdrag {
     touch-action: pan-y !important;
@@ -134,11 +137,11 @@ CSS = """
   }
 }
 .obs-caption, .obs-status { margin: 0; font-size: .85rem; line-height: 1.5; }
-.obs-caption { color: var(--obs-muted, #8ba39e); max-width: 76ch; }
-.obs-status { color: var(--obs-ink-2, #c4d6d2); font-family: var(--obs-mono, monospace);
+.obs-caption { color: var(--obs-muted, __OBS_MUTED__); max-width: 76ch; }
+.obs-status { color: var(--obs-ink-2, __OBS_INK_2__); font-family: var(--obs-mono, monospace);
   font-size: .82rem; }
 .obs-empty { display: flex; align-items: center; justify-content: center; height: 100%;
-  min-height: 240px; padding: 24px; text-align: center; color: var(--obs-muted, #8ba39e);
+  min-height: 240px; padding: 24px; text-align: center; color: var(--obs-muted, __OBS_MUTED__);
   font-size: .86rem; }
 @container (max-width: 600px) {
   .obs-toolbar { grid-template-columns: minmax(0, 1fr); }
@@ -188,11 +191,12 @@ JS = r"""
   const constellationUrl = root.dataset.constellationUrl || '';
   if (compact) root.classList.add('is-compact');
   if (resetButton) resetButton.hidden = compact;
-  const COLORS = {0: '#5eead4', 1: '#b7a4ff'};
-  const INK = '#eef7f4';
-  const MUTED = '#8ba39e';
-  const LINE = '#22383a';
-  const SURFACE = '#0e1719';
+  const PALETTE = __OBS_PALETTE__;
+  const COLORS = {0: PALETTE.cluster_0, 1: PALETTE.cluster_1};
+  const INK = PALETTE.ink;
+  const MUTED = PALETTE.muted;
+  const LINE = PALETTE.line;
+  const SURFACE = PALETTE.surface_1;
   const nf = new Intl.NumberFormat();
   const WEBGL = (() => {
     try {
@@ -352,8 +356,8 @@ JS = r"""
         hoverinfo: 'skip',
         x: has ? [points.x[index]] : [], y: has ? [points.y[index]] : [],
         z: has ? [points.z[index]] : [],
-        marker: {size: 8, color: '#ffffff',
-          line: {color: has ? COLORS[points.cluster[index]] : '#ffffff', width: 3}}
+        marker: {size: 8, color: PALETTE.ink,
+          line: {color: has ? COLORS[points.cluster[index]] : PALETTE.ink, width: 3}}
       };
     }
     return {
@@ -367,7 +371,7 @@ JS = r"""
   }
   function baseLayout() {
     return {
-      autosize: true, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+      autosize: true, paper_bgcolor: SURFACE, plot_bgcolor: SURFACE,
       uirevision: state.view + ':' + resetRevision,
       font: {family: 'Inter, Segoe UI, sans-serif', color: MUTED, size: 12},
       margin: {l: 46, r: 18, t: plot.clientWidth < 500 ? 76 : 36, b: 44},
@@ -388,11 +392,12 @@ JS = r"""
   }
   function layout3d() {
     const base = baseLayout();
-    base.margin = {l: 0, r: 0, t: 0, b: 0};
+    base.margin = {l: 12, r: 12, t: 32, b: 24};
     base.scene = {
-      xaxis: {title: {text: pcaLabel(0)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED},
-      yaxis: {title: {text: pcaLabel(1)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED},
-      zaxis: {title: {text: pcaLabel(2)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED},
+      bgcolor: SURFACE,
+      xaxis: {title: {text: pcaLabel(0)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED, backgroundcolor: SURFACE},
+      yaxis: {title: {text: pcaLabel(1)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED, backgroundcolor: SURFACE},
+      zaxis: {title: {text: pcaLabel(2)}, gridcolor: LINE, zerolinecolor: LINE, color: MUTED, backgroundcolor: SURFACE},
       camera: camera3d || {eye: {x: 1.15, y: 1.15, z: 0.95}},
       aspectmode: 'data',
       dragmode: 'orbit'
@@ -446,7 +451,8 @@ JS = r"""
       colorbar: {title: {text: 'Tracks (log)', font: {color: MUTED, size: 12}},
         thickness: 9, len: 0.55, tickfont: {color: MUTED, size: 12},
         outlinewidth: 0},
-      colorscale: [[0, '#0b1416'], [0.25, '#123033'], [0.6, '#1f6f6b'], [1, '#5eead4']],
+      colorscale: [[0, PALETTE.density_low], [0.25, PALETTE.density_mid],
+        [0.6, PALETTE.density_high], [1, PALETTE.teal_dim]],
       hovertemplate: 'Cell track count: %{customdata[0]}<br>Cluster 1 share: '
         + '%{customdata[1]:.1%}<br>Mean instrumentalness: %{customdata[2]:.3f}<extra></extra>'
     };
@@ -551,6 +557,7 @@ JS = r"""
       .then((module) => {
         if (disposed || generation !== sceneGeneration || state.view !== 'constellation') return null;
         constellation = module.createConstellation({
+          palette: PALETTE,
           container: constellationHost,
           points: state.payload.points,
           reduceMotion: reduceMotion,
@@ -773,3 +780,9 @@ def create_explorer(elem_id: str, *, compact: bool = False) -> gr.HTML:
         container=False,
         padding=False,
     )
+
+
+# Resolve standalone HTML/CSS and JavaScript from the authoritative light tokens.
+for _key, _value in TOKENS.items():
+    CSS = CSS.replace("__OBS_" + _key.upper() + "__", _value)
+JS = JS.replace("__OBS_PALETTE__", json.dumps(TOKENS))

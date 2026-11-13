@@ -22,7 +22,17 @@ def test_application_constructs_offline():
     names = {d["api_name"] for d in config["dependencies"]}
     assert {"refresh", "refresh_live_data", "predict_cluster"} <= names
     assert len(config["dependencies"]) == 13
-    assert theme().body_background_fill == "#080d0f"
+    assert theme().body_background_fill == "#F7F9FC"
+
+
+def test_gradio_host_preference_cannot_change_light_surfaces():
+    from spotify_cluster.web.theme import theme
+
+    values = theme().to_dict()["theme"]
+    for key in values:
+        if key.endswith("_dark") and key.removesuffix("_dark") in values:
+            assert values[key] == values[key.removesuffix("_dark")], key
+    assert values["button_primary_text_color"] == "#FFFFFF"
 
 
 def test_imports_do_not_load_model_dataset_or_start_servers(tmp_path):

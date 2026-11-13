@@ -134,8 +134,8 @@ Holdout score is created. See [RESEARCH.md](RESEARCH.md).
 - Keyboard: native controls, custom Explorer buttons with `aria-pressed` and
   `role="status"`, visible 2px teal focus outlines. The sample-number form provides keyboard access to point
   descriptors and neighbors; exact tables expose population aggregates. Plotly modebar buttons are focusable.
-- Contrast: all text token pairs tested at ≥4.5:1 (primary 17.9, secondary 12.9,
-  muted 7.3 on the page). The cluster identity never depends only on color.
+- Contrast: text token pairs meet AA; measured permanent-light values are in
+  [DESIGN.md](DESIGN.md#accessibility). Cluster identity also uses labels/symbols.
 - Reduced motion: CSS transitions/animations are removed; Plotly transitions are
   disabled; the constellation has no auto-rotation or animation loop.
 - States: loading, API ready, backend offline, partial visualization, aggregate
@@ -203,3 +203,20 @@ model bundle, verification sample and private points artifact are not served.
 Public hosting requires TLS, access/rate controls, provider permissions and a
 separate publication decision; see [DEPLOYMENT.md](DEPLOYMENT.md). The existing public service remains an operator-owned deployment; UI refinement
 does not itself authorize a push or redeployment.
+
+## Permanent light verification
+
+The application always renders the light palette, including a dark OS preference
+and `?__theme=dark`. There is no theme control or stored preference. See
+[design ownership](DESIGN.md#permanent-light-implementation) for Gradio compatibility.
+With the trusted local API and frontend on 8000/7872, run:
+
+```powershell
+.\.venv\Scripts\python.exe plans/20261113-light-theme/verify-light.py
+```
+
+This checks all four tabs, all Explorer modes, explicit white 3D scenes, refresh,
+reload and changing color preference at the three required widths. It writes
+ignored points screenshots; retain aggregate mode for published documentation
+screenshots. The full refinement interaction script above remains the regression
+check for picking, camera, neighbors, filtering, prediction and fallback behavior.

@@ -2,10 +2,10 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-const CLUSTER_COLORS = ["#5eead4", "#b7a4ff"];
 
 export function createConstellation(options) {
-  const { container, points } = options;
+  const { container, points, palette } = options;
+  const CLUSTER_COLORS = [palette.cluster_0, palette.cluster_1];
   const onSelect = options.onSelect || (() => {});
   const onHover = options.onHover || (() => {});
   const onReady = options.onReady || (() => {});
@@ -13,19 +13,19 @@ export function createConstellation(options) {
   if (!count) throw new Error("No sampled points to render");
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#080d0f");
+  scene.background = new THREE.Color(palette.surface_1);
 
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
-  const palette = CLUSTER_COLORS.map((hex) => new THREE.Color(hex));
-  const hiddenColor = new THREE.Color("#0b1416");
+  const pointColors = CLUSTER_COLORS.map((hex) => new THREE.Color(hex));
+  const hiddenColor = new THREE.Color(palette.surface_1);
   const visibleClusters = new Set([0, 1]);
   for (let index = 0; index < count; index += 1) {
     const offset = index * 3;
     positions[offset] = points.x[index];
     positions[offset + 1] = points.y[index];
     positions[offset + 2] = points.z[index];
-    const color = palette[points.cluster[index]] || palette[0];
+    const color = pointColors[points.cluster[index]] || pointColors[0];
     colors[offset] = color.r;
     colors[offset + 1] = color.g;
     colors[offset + 2] = color.b;
@@ -75,7 +75,7 @@ export function createConstellation(options) {
   );
   const selectionMaterial = new THREE.PointsMaterial({
     size: Math.max(0.12, extent * 0.014),
-    color: "#ffffff",
+    color: palette.ink,
     transparent: true,
     opacity: 1,
     sizeAttenuation: true,
@@ -92,7 +92,7 @@ export function createConstellation(options) {
     powerPreference: "high-performance",
   });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.setClearColor("#080d0f", 1);
+  renderer.setClearColor(palette.surface_1, 1);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.domElement.className = "obs-constellation-canvas";
   renderer.domElement.setAttribute("role", "img");

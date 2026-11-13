@@ -47,10 +47,10 @@ HELP = {
 }
 BRAND_MARK = """
 <svg class="obs-brand-mark" viewBox="0 0 40 40" role="img" aria-label="Acoustic Observatory mark">
-  <circle cx="20" cy="20" r="15.5" fill="none" stroke="#5eead4" stroke-opacity=".45"/>
-  <circle cx="20" cy="20" r="8.5" fill="none" stroke="#b7a4ff" stroke-opacity=".7"/>
-  <circle cx="20" cy="20" r="2.6" fill="#5eead4"/>
-  <circle cx="33.5" cy="12" r="1.8" fill="#f5c76a"/>
+  <circle cx="20" cy="20" r="15.5" fill="none" stroke="var(--obs-teal)"/>
+  <circle cx="20" cy="20" r="8.5" fill="none" stroke="var(--obs-violet)"/>
+  <circle cx="20" cy="20" r="2.6" fill="var(--obs-teal)"/>
+  <circle cx="33.5" cy="12" r="1.8" fill="var(--obs-amber)"/>
 </svg>
 """
 HERO = """
@@ -490,7 +490,7 @@ def error_card_html(message, *, sample_index=None):
         else 'class="obs-card"'
     )
     return (
-        f'<div {attributes}><span class="obs-kicker">Could not complete</span>'
+        f'<div {attributes} data-tone="error"><span class="obs-kicker">Could not complete</span>'
         f'<p class="obs-muted" style="margin:6px 0 0">{e(message)}</p></div>'
     )
 

@@ -6,23 +6,27 @@ from __future__ import annotations
 import gradio as gr
 
 TOKENS = {
-    "bg": "#080d0f",
-    "surface_1": "#0e1719",
-    "surface_2": "#132326",
-    "surface_3": "#193033",
-    "ink": "#eef7f4",
-    "ink_2": "#c4d6d2",
-    "muted": "#8ba39e",
-    "line": "#22383a",
-    "line_strong": "#35565a",
-    "teal": "#5eead4",
-    "teal_dim": "#2dd4bf",
-    "violet": "#b7a4ff",
-    "amber": "#f5c76a",
-    "danger": "#ff9b9b",
-    "success": "#6ee7b7",
-    "cluster_0": "#5eead4",
-    "cluster_1": "#b7a4ff",
+    "bg": "#F7F9FC",
+    "surface_1": "#FFFFFF",
+    "surface_2": "#F0F3F7",
+    "surface_3": "#E8EDF3",
+    "ink": "#17212B",
+    "ink_2": "#556270",
+    "muted": "#596775",
+    "line": "#E0E6ED",
+    "line_strong": "#7B8896",
+    "teal": "#147D73",
+    "teal_dim": "#10665E",
+    "violet": "#7055B9",
+    "amber": "#8A5B10",
+    "danger": "#B42335",
+    "success": "#147D59",
+    "on_accent": "#FFFFFF",
+    "density_low": "#5D9F96",
+    "density_mid": "#3D9589",
+    "density_high": "#247F74",
+    "cluster_0": "#147D73",
+    "cluster_1": "#7055B9",
 }
 CLUSTER_COLORS = {0: TOKENS["cluster_0"], 1: TOKENS["cluster_1"]}
 CLUSTER_SYMBOLS = {0: "circle", 1: "diamond"}
@@ -30,7 +34,7 @@ CLUSTER_NAMES = {0: "Cluster 0", 1: "Cluster 1"}
 
 
 def theme() -> gr.Theme:
-    return gr.themes.Base(
+    base = gr.themes.Base(
         primary_hue="teal",
         secondary_hue="violet",
         neutral_hue="slate",
@@ -42,53 +46,32 @@ def theme() -> gr.Theme:
             "sans-serif",
         ],
         font_mono=["JetBrains Mono", "Cascadia Code", "Consolas", "monospace"],
-    ).set(
+    )
+    light_values = dict(
         body_background_fill=TOKENS["bg"],
-        body_background_fill_dark=TOKENS["bg"],
         body_text_color=TOKENS["ink"],
-        body_text_color_dark=TOKENS["ink"],
         body_text_color_subdued=TOKENS["ink_2"],
-        body_text_color_subdued_dark=TOKENS["ink_2"],
         background_fill_primary=TOKENS["bg"],
-        background_fill_primary_dark=TOKENS["bg"],
         background_fill_secondary=TOKENS["surface_1"],
-        background_fill_secondary_dark=TOKENS["surface_1"],
         block_background_fill=TOKENS["surface_1"],
-        block_background_fill_dark=TOKENS["surface_1"],
         block_border_color=TOKENS["line"],
-        block_border_color_dark=TOKENS["line"],
         block_border_width="1px",
         block_radius="14px",
         panel_background_fill=TOKENS["surface_1"],
-        panel_background_fill_dark=TOKENS["surface_1"],
         panel_border_color=TOKENS["line"],
-        panel_border_color_dark=TOKENS["line"],
         input_background_fill=TOKENS["surface_2"],
-        input_background_fill_dark=TOKENS["surface_2"],
         input_border_color=TOKENS["line_strong"],
-        input_border_color_dark=TOKENS["line_strong"],
         input_border_color_focus=TOKENS["teal"],
-        input_border_color_focus_dark=TOKENS["teal"],
         input_placeholder_color=TOKENS["muted"],
-        input_placeholder_color_dark=TOKENS["muted"],
         button_primary_background_fill=TOKENS["teal"],
-        button_primary_background_fill_dark=TOKENS["teal"],
         button_primary_background_fill_hover=TOKENS["teal_dim"],
-        button_primary_background_fill_hover_dark=TOKENS["teal_dim"],
-        button_primary_text_color="#04110f",
-        button_primary_text_color_dark="#04110f",
+        button_primary_text_color=TOKENS["on_accent"],
         button_secondary_background_fill=TOKENS["surface_2"],
-        button_secondary_background_fill_dark=TOKENS["surface_2"],
         button_secondary_background_fill_hover=TOKENS["surface_3"],
-        button_secondary_background_fill_hover_dark=TOKENS["surface_3"],
         button_secondary_text_color=TOKENS["ink"],
-        button_secondary_text_color_dark=TOKENS["ink"],
         button_secondary_border_color=TOKENS["line_strong"],
-        button_secondary_border_color_dark=TOKENS["line_strong"],
         checkbox_background_color_selected=TOKENS["teal"],
-        checkbox_background_color_selected_dark=TOKENS["teal"],
         slider_color=TOKENS["teal"],
-        slider_color_dark=TOKENS["teal"],
         color_accent=TOKENS["teal"],
         color_accent_soft=TOKENS["surface_3"],
         link_text_color=TOKENS["teal"],
@@ -98,34 +81,60 @@ def theme() -> gr.Theme:
         table_even_background_fill=TOKENS["surface_1"],
         table_odd_background_fill=TOKENS["surface_2"],
         code_background_fill=TOKENS["surface_3"],
-        code_background_fill_dark=TOKENS["surface_3"],
         border_color_primary=TOKENS["line"],
-        border_color_primary_dark=TOKENS["line"],
         loader_color=TOKENS["teal"],
-        loader_color_dark=TOKENS["teal"],
-        shadow_drop="0 1px 2px rgba(0,0,0,.35)",
-        shadow_drop_lg="0 18px 48px rgba(0,0,0,.35)",
+        shadow_drop="0 1px 2px rgba(23,33,43,.10)",
+        shadow_drop_lg="0 18px 48px rgba(23,33,43,.10)",
         block_shadow="none",
     )
 
+    # Gradio can receive a host-provided theme preference. Its compatibility slots
+    # share the light values; there is no second palette or application theme state.
+    values = base.to_dict()["theme"] | light_values
+    dark_values = {
+        key: values[key.removesuffix("_dark")]
+        for key in values
+        if key.endswith("_dark") and key.removesuffix("_dark") in values
+    }
+    return base.set(**light_values, **dark_values)
+
+
+def css_tokens() -> str:
+    return "; ".join(
+        f"--obs-{key.replace('_', '-')}: {value}" for key, value in TOKENS.items()
+    )
+
+
+LIGHT_HEAD = """<meta name="color-scheme" content="light">
+<script>
+// Gradio mounts before custom head scripts on some clients. Enforce the same
+// light appearance for initial, host-supplied and subsequent system preferences.
+const observatoryUrl = new URL(window.location.href);
+observatoryUrl.searchParams.set('__theme', 'light');
+history.replaceState(history.state, '', observatoryUrl);
+const keepObservatoryLight = () => {
+  if (document.body.classList.contains('dark')) document.body.classList.remove('dark');
+};
+keepObservatoryLight();
+new MutationObserver(keepObservatoryLight).observe(document.body, {
+  attributes: true, attributeFilter: ['class']
+});
+</script>"""
+
 
 CSS = """
-:root { color-scheme: dark; --obs-display: "Iowan Old Style", "Palatino Linotype",
+:root { color-scheme: only light; --obs-display: "Iowan Old Style", "Palatino Linotype",
   "Book Antiqua", Palatino, Georgia, serif;
   --obs-ui: "Inter", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --obs-mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
-html, body { background: #080d0f !important; }
+html, body { background: var(--obs-bg) !important; color-scheme: only light !important; }
 body { margin: 0; }
 /* The app shell owns width and rhythm so every view shares one grid. */
 .gradio-container {
-  --obs-bg: #080d0f; --obs-surface-1: #0e1719; --obs-surface-2: #132326;
-  --obs-surface-3: #193033; --obs-ink: #eef7f4; --obs-ink-2: #c4d6d2;
-  --obs-muted: #8ba39e; --obs-line: #22383a; --obs-line-strong: #35565a;
-  --obs-teal: #5eead4; --obs-violet: #b7a4ff; --obs-amber: #f5c76a;
   --obs-space-1: 4px; --obs-space-2: 8px; --obs-space-3: 12px;
   --obs-space-4: 16px; --obs-space-5: 24px; --obs-space-6: 32px;
-  --obs-duration: 180ms; --obs-ease: ease-out; --obs-teal-dim: #2dd4bf;
-  --obs-danger: #ff9b9b; --obs-radius: 14px; --obs-radius-sm: 9px;
+  --obs-duration: 180ms; --obs-ease: ease-out;
+  --obs-radius: 14px; --obs-radius-sm: 9px;
   max-width: 1280px !important; width: 100%; min-width: 0; margin: 0 auto;
   padding: 0 24px 72px; background: var(--obs-bg) !important;
   color: var(--obs-ink); font-family: var(--obs-ui); font-size: 16px;
@@ -165,7 +174,7 @@ footer, .built-with, .show-api { display: none !important; }
   font-family: var(--obs-mono); font-size: .8rem; letter-spacing: .06em;
   color: var(--obs-ink-2); background: var(--obs-surface-1); }
 .obs-live::before { content: ""; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--obs-teal); box-shadow: 0 0 0 3px rgba(94,234,212,.12); }
+  background: var(--obs-teal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--obs-teal) 12%, transparent); }
 .obs-live.offline::before { background: var(--obs-danger); box-shadow: none; }
 .obs-hero { position: relative; padding: var(--obs-space-4) 0 var(--obs-space-3); }
 .obs-hero > * { position: relative; z-index: 1; }
@@ -190,6 +199,8 @@ footer, .built-with, .show-api { display: none !important; }
 .obs-card { background: var(--obs-surface-1); border: 1px solid var(--obs-line);
   border-radius: var(--obs-radius); padding: 20px; min-width: 0; }
 .obs-card.tight { padding: 16px; }
+.obs-card[data-tone="error"] { border-left: 2px solid var(--obs-danger); }
+.obs-card[data-tone="error"] .obs-kicker { color: var(--obs-danger); }
 .obs-card h3, .obs-card h4 { margin: 0 0 8px; }
 .obs-card h3 { font-family: var(--obs-display); font-weight: 500; font-size: 1.34rem;
   color: var(--obs-ink); letter-spacing: -.01em; }
@@ -225,7 +236,7 @@ footer, .built-with, .show-api { display: none !important; }
 .obs-finding { position: relative; overflow: hidden; }
 .obs-finding::after { content: ""; position: absolute; right: -40px; top: -50px;
   width: 150px; height: 150px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(245,199,106,.14), transparent 68%); }
+  background: none; }
 .obs-big { font-family: var(--obs-display); font-size: clamp(2.1rem, 4vw, 3.1rem);
   line-height: 1; color: var(--obs-amber); letter-spacing: -.02em; }
 .obs-big small { font-family: var(--obs-ui); font-size: .88rem; color: var(--obs-muted);
@@ -285,12 +296,13 @@ footer, .built-with, .show-api { display: none !important; }
   font-size: .82rem; }
 .obs-verdict { font-family: var(--obs-mono); font-size: .8rem; letter-spacing: .08em;
   text-transform: uppercase; color: var(--obs-ink-2); border: 1px solid var(--obs-line-strong);
-  border-radius: 999px; padding: 5px 10px; white-space: nowrap; }
+  border-radius: 999px; padding: 5px 10px; white-space: normal; max-width: 100%;
+  box-sizing: border-box; }
 .obs-meter { margin-top: 14px; }
 .obs-meter-row { display: grid; grid-template-columns: 92px minmax(0,1fr) 88px;
   gap: 10px; align-items: center; margin: 9px 0; font-size: .82rem; }
 .obs-meter-row .track { height: 8px; border-radius: 999px; background: var(--obs-surface-3);
-  overflow: hidden; }
+  overflow: hidden; outline: 1px solid var(--obs-line-strong); }
 .obs-meter-row .track span { display: block; height: 100%; border-radius: inherit; }
 .obs-meter-row .track.c0 span { background: var(--obs-teal); }
 .obs-meter-row .track.c1 span { background: var(--obs-violet); }
@@ -355,6 +367,10 @@ footer, .built-with, .show-api { display: none !important; }
   border: 1px solid var(--obs-line-strong) !important; border-radius: 8px !important;
   font-family: var(--obs-ui); }
 .gradio-container input[type="range"] { accent-color: var(--obs-teal); }
+.gradio-container input[type="range"]::-webkit-slider-runnable-track {
+  box-shadow: inset 0 0 0 1px var(--obs-line-strong); }
+.gradio-container input[type="range"]::-moz-range-track {
+  box-shadow: inset 0 0 0 1px var(--obs-line-strong); }
 .gradio-container input[type="range"]::-webkit-slider-thumb {
   background: var(--obs-teal) !important; border-color: var(--obs-teal) !important; }
 .gradio-container input[type="range"]::-moz-range-thumb {
@@ -365,7 +381,7 @@ footer, .built-with, .show-api { display: none !important; }
 .gradio-container button.primary, .gradio-container button.lg.primary,
 #predict-submit {
   background: var(--obs-teal) !important; background-color: var(--obs-teal) !important;
-  background-image: none !important; color: #04110f !important;
+  background-image: none !important; color: var(--obs-on-accent) !important;
   border: 1px solid var(--obs-teal) !important; font-weight: 700; }
 #predict-submit { min-height: 48px; }
 .gradio-container button.primary:hover { background: var(--obs-teal-dim) !important; }
@@ -385,7 +401,7 @@ footer, .built-with, .show-api { display: none !important; }
   color: var(--obs-muted) !important; font-family: var(--obs-mono) !important;
   font-size: .78rem !important; letter-spacing: .06em; text-transform: uppercase;
   position: sticky; top: 0; z-index: 1; }
-.gradio-container tbody tr:nth-child(even) { background: rgba(255,255,255,.02); }
+.gradio-container tbody tr:nth-child(even) { background: var(--obs-surface-2); }
 .gradio-container .plot-container { background: transparent; }
 .gradio-container .forms, .gradio-container .panel { background: transparent; }
 .gradio-container .gr-box { background: transparent; border: 0; }
@@ -432,9 +448,10 @@ footer, .built-with, .show-api { display: none !important; }
 .gradio-container .obs-chart { padding-top: 32px !important; }
 .obs-chart .modebar-container { top: -32px !important; }
 #explorer-detail[data-selection="none"] .obs-selected-track { display: none; }
-#explorer-detail[data-selection="pending"] .obs-selected-track { opacity: .5; }
+#explorer-detail[data-selection="pending"] .obs-selected-track { border-style: dashed; cursor: progress; }
 #prediction-result { scroll-margin-top: var(--obs-space-5); }
-#prediction-result[aria-busy="true"] { opacity: .65; }
+#prediction-result[aria-busy="true"] { cursor: progress; }
+#prediction-result[aria-busy="true"] .obs-card { border-style: dashed; }
 #predict-form input[type="number"] { min-width: 84px; min-height: 44px; font-size: 1rem; }
 #predict-form .tab-like-container {
   display: flex; align-items: stretch; min-height: 44px; height: auto;
@@ -527,3 +544,5 @@ footer, .built-with, .show-api { display: none !important; }
     scroll-behavior: auto !important; }
 }
 """
+
+CSS = ":root { " + css_tokens() + "; }\n" + CSS

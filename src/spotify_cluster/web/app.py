@@ -23,7 +23,7 @@ from .components import (
     status_html,
 )
 from .explorer import create_explorer
-from .theme import CSS, theme
+from .theme import CSS, LIGHT_HEAD, theme
 
 TAB_NAMES = (
     "Overview",
@@ -528,6 +528,7 @@ def launch_options():
         blocked_paths=[str(cwd)],
         theme=theme(),
         css=CSS,
+        head=LIGHT_HEAD,
         run_history=False,
         footer_links=[],
         enable_monitoring=False,
