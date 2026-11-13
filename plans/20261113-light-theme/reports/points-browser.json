@@ -33,35 +33,23 @@
       "width": 1440,
       "height": 900,
       "map_top": 183.7,
-      "ready_seconds": 2.438
+      "ready_seconds": 2.406
     },
     {
       "width": 768,
       "height": 1024,
       "map_top": 524.6,
-      "ready_seconds": 2.375
+      "ready_seconds": 2.141
     },
     {
       "width": 375,
       "height": 812,
       "map_top": 564.6,
-      "ready_seconds": 2.11
+      "ready_seconds": 2.234
     }
   ],
   "errors": [],
   "failed_requests": [
-    {
-      "path": "data",
-      "reason": "net::ERR_ABORTED"
-    },
-    {
-      "path": "data",
-      "reason": "net::ERR_ABORTED"
-    },
-    {
-      "path": "data",
-      "reason": "net::ERR_ABORTED"
-    },
     {
       "path": "data",
       "reason": "net::ERR_ABORTED"

@@ -86,8 +86,10 @@ mode enables the same 2D/3D/density preview as the local points artifact.
 - **Reset view** restores camera/zoom and clears selection while preserving filters.
   Changing projection clears selection and may reset the camera. A guide explains
   the active mode when no point is selected; density shows population guidance.
-  Inspector responses are gated by the selected sample index, and rapid events
-  retain the latest selection/clear request. Tab changes retain the current map.
+  Inspector responses are gated by the selected sample index. Each selection/clear
+  event retains its payload with serialized handler execution; Gradio's deferred
+  `always_last` mode replays stale event data under hosted latency. Tab changes
+  retain the current map.
 - **Touch 3D:** Enable rotation explicitly opts into canvas gestures. Resume page
   scrolling returns vertical scrolling; each projection change starts unlocked
   for page scrolling. Hover is supplementary, not required for inspection.
@@ -213,6 +215,8 @@ With the trusted local API and frontend on 8000/7872, run:
 
 ```powershell
 .\.venv\Scripts\python.exe plans/20261113-light-theme/verify-light.py
+.\.venv\Scripts\python.exe plans/20261113-light-theme/verify-selection-latency.py `
+  --output plans/20261113-light-theme/reports/latency-picking.json
 ```
 
 This checks all four tabs, all Explorer modes, explicit white 3D scenes, refresh,
@@ -220,3 +224,5 @@ reload and changing color preference at the three required widths. It writes
 ignored points screenshots; retain aggregate mode for published documentation
 screenshots. The full refinement interaction script above remains the regression
 check for picking, camera, neighbors, filtering, prediction and fallback behavior.
+The latency check repeats 3D-to-2D picking five times with 500ms browser network
+latency and real HTTP handlers. `--base` can target the authorized public service.

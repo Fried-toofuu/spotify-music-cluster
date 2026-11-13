@@ -16,6 +16,7 @@ stored preference, alternate palette, inference change or new dependency was add
 - `src/spotify_cluster/web/theme.py`: authoritative palette, generated CSS tokens,
   Gradio configuration, light enforcement and component states.
 - `web/app.py`: passes the light head through supported Gradio launch options.
+  Selection events retain their payloads with serialized execution.
 - `web/components.py`: token-colored SVG mark and semantic error styling hook.
 - `web/explorer.py`: shared embedded palette, white Plotly paper/plots/3D scene,
   readable density colors, selection and disabled controls; small 3D label margins.
@@ -162,3 +163,27 @@ Commit/push and Render release verification are pending at this report snapshot.
 The public service was inspected and still rendered the old dark revision
 `54f6f01`. Do not infer deployment success from the local checks. The final release
 receipt and user-facing delivery must state the actual push and hosted result.
+
+## Hosted selection follow-up
+
+The theme commit `c47265d` was pushed normally to `main`; Render deployment
+`7758966345` reported success and the actual public light-preference suite passed
+all 27 checks. Public regression testing then reproduced a tablet selection failure
+after rapid 3D-to-2D switching. Normal keyboard and 2D picking passed.
+
+Diagnosis: actual `plotly_click` events fired and the frontend selected a sample,
+but Gradio sent repeated `{index: null, view: "3d"}` event payloads. Its installed
+dispatcher stores only a deferred function ID for `always_last`, then calls
+`this.dispatch(e)` with the earlier event. The latest selection was lost. This
+was reproduced five times on the hosted service; no scientific data or artifact
+mismatch caused it. Waiting until the queue cleared allowed normal picking.
+
+The selection listener now uses `trigger_mode="multiple"` with
+`concurrency_limit=1`. Every event retains its payload, handlers remain serialized,
+and the existing sample-index gate keeps stale responses hidden. This preserves
+the intended interaction contract; no calculation, camera or selection meaning
+changed. Five transition/picking trials pass with 500ms network latency against
+real local HTTP handlers; see [latency-picking.json](latency-picking.json) and
+[repeatable check](../verify-selection-latency.py). Full normal tests, Ruff and
+package build also pass for the follow-up. The final hosted receipt must verify
+the follow-up revision rather than declaring the first deployment fully validated.

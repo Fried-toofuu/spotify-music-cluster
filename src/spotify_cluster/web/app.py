@@ -442,7 +442,10 @@ def create_app(client=None):
             [state],
             [explorer_detail],
             api_visibility="private",
-            trigger_mode="always_last",
+            # Gradio's deferred always_last dispatch reuses the first event data.
+            # Retain each payload; the inspector gates responses by current sample.
+            trigger_mode="multiple",
+            concurrency_limit=1,
         )
         for trigger in (
             state.change,

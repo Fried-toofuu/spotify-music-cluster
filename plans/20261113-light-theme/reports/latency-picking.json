@@ -1,0 +1,26 @@
+{
+  "base": "http://127.0.0.1:7872/",
+  "latency_ms": 500,
+  "checks": [
+    {
+      "trial": 0,
+      "status": "PASS"
+    },
+    {
+      "trial": 1,
+      "status": "PASS"
+    },
+    {
+      "trial": 2,
+      "status": "PASS"
+    },
+    {
+      "trial": 3,
+      "status": "PASS"
+    },
+    {
+      "trial": 4,
+      "status": "PASS"
+    }
+  ]
+}
